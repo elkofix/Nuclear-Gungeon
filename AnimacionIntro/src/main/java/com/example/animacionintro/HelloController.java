@@ -44,7 +44,7 @@ public class HelloController implements Initializable {
         canvas.setOnMousePressed(this::onMousePressed);
         canvas.setOnMouseMoved(this::onMouseMoved);
         avatar = new Avatar();
-        Gun gun = new Gun(new Vector(100, 200), 8, new Image("file:" + HelloApplication.class.getResource("gun/gun.png").getPath()), 2);
+        Gun gun = new Gun(new Vector(100, 200), 8, new Image("file:" + HelloApplication.class.getResource("gun/gun.png").getPath()), 2, 400);
         new Thread(avatar).start(); //Esto ejecuta el código dentro de run() en paralelo
         levels = new ArrayList<>();
 
@@ -56,6 +56,7 @@ public class HelloController implements Initializable {
         l1.getEnemies().add(e);
         l1.getEnemies().add(new Enemy(new Vector(400, 300)));
         l1.getGuns().add(gun);
+        l1.getGuns().add(new Gun(new Vector(200, 200), 2, new Image("file:" + HelloApplication.class.getResource("gun/shotgun.png").getPath()), 4, 3000));
         levels.add(l1);
         //Generar el segundo mapa
         Level l2 = new Level(1);
@@ -87,22 +88,25 @@ public class HelloController implements Initializable {
     private void onMousePressed(MouseEvent e) {
         if(avatar.getGun()!=null) {
             if(avatar.getGun().getBulletQuantity()>0) {
-                new Thread(reproductorDeSonido).start();
-                System.out.println("X: " + e.getX() + "Y: " + e.getY());
-                avatar.getGun().setMousePressed(true);
-                double diffX = e.getX() - avatar.pos.getX();
-                double diffY = e.getY() - avatar.pos.getY();
-                Vector diff = new Vector(diffX, diffY);
-                diff.normalize();
-                diff.setMag(15);
+                if(!avatar.getGun().isLock()){
+                    new Thread(reproductorDeSonido).start();
+                    System.out.println("X: " + e.getX() + "Y: " + e.getY());
+                    avatar.getGun().setMousePressed(true);
+                    double diffX = e.getX() - avatar.pos.getX();
+                    double diffY = e.getY() - avatar.pos.getY();
+                    Vector diff = new Vector(diffX, diffY);
+                    diff.normalize();
+                    diff.setMag(15);
 
-                levels.get(currentLevel).getBullets().add(
-                        new Bullet(
-                                new Vector(avatar.pos.getX(), avatar.pos.getY()),
-                                diff
-                        )
-                );
-                avatar.getGun().setBulletQuantity(avatar.getGun().getBulletQuantity()-1);
+                    levels.get(currentLevel).getBullets().add(
+                            new Bullet(
+                                    new Vector(avatar.pos.getX(), avatar.pos.getY()),
+                                    diff
+                            )
+                    );
+                    avatar.getGun().lock();
+                    avatar.getGun().setBulletQuantity(avatar.getGun().getBulletQuantity() - 1);
+                }
             }else{
                 if(!avatar.getGun().isReloading()){
                     avatar.getGun().reload();
@@ -209,7 +213,7 @@ public class HelloController implements Initializable {
                             Math.pow(gun.pos.getX()-avatar.pos.getX(), 2) +
                                     Math.pow(gun.pos.getY()-avatar.pos.getY(), 2)
                     );
-                    if(distance < 10){
+                    if(distance < 40){
                         if(Epressed){
                             gun.setSceneX(tempMouseX);
                             gun.setSceneY(tempMouseY);
@@ -231,7 +235,7 @@ public class HelloController implements Initializable {
                                         Math.pow(en.pos.getY()-bn.pos.getY(), 2)
                         );
 
-                        if(distance < 10){
+                        if(distance < 15){
                             level.getBullets().remove(i);
                             level.getEnemies().remove(j);
                         }

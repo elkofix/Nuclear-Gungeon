@@ -15,31 +15,30 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class Gun extends Drawing implements Runnable{
-
-    public boolean isReloading() {
-        return isReloading;
-    }
-
-
-    public boolean isMousePressed() {
-        return mousePressed;
-    }
-
-
-    public void setMousePressed(boolean mousePressed) {
-        this.mousePressed = mousePressed;
-    }
-
-    private boolean mousePressed;
-
-    public void setReloading(boolean reloading) {
-        isReloading = reloading;
-    }
-
     private boolean isReloading;
+    private boolean isLock;
+    private int firerate;
     ScheduledExecutorService executorService;
-    public Gun(Vector vector, int bulletQuantity, Image img, int reloadTime){
+    ScheduledExecutorService executorServiceFire;
+    private int reloadTime;
+    private boolean isFront;
+    private int bulletSize;
+    private boolean mousePressed;
+    private int bulletQuantity;
+    private boolean hasPlayer;
+    private double mouseX;
+    private double mouseY;
+    private Rotate rotateX, rotateY;
+    private Image img;
+    private Vector center;
+    private double SceneX;
+    private double SceneY;
+    int frame;
+
+
+    public Gun(Vector vector, int bulletQuantity, Image img, int reloadTime, int firerate){
         this.center = vector;
+        this.firerate = firerate;
         pos = vector;
         IMAGE_WIDTH = img.getWidth();
         IMAGE_HEIGHT = img.getHeight();
@@ -48,13 +47,9 @@ public class Gun extends Drawing implements Runnable{
         this.bulletQuantity = bulletQuantity;
         this.bulletSize = bulletQuantity;
         this.executorService = Executors.newSingleThreadScheduledExecutor();
+        this.executorServiceFire = Executors.newSingleThreadScheduledExecutor();
+        executorServiceFire.shutdown();
         executorService.shutdown();
-    }
-
-    private int reloadTime;
-
-    public double getMouseX() {
-        return mouseX;
     }
 
     public void reload(){
@@ -81,100 +76,23 @@ public class Gun extends Drawing implements Runnable{
         executorService.shutdown();
     }
 
-    public void stopReload() {
-        // Cancelar cualquier ejecución programada anterior
-        executorService.shutdownNow();
-        executorService = Executors.newSingleThreadScheduledExecutor();
+    public void lock(){
+        System.out.println(bulletQuantity);
+        // Detener la ejecución actual (si hay alguna)
+        if (!executorServiceFire.isShutdown() && !executorServiceFire.isTerminated()) {
+            System.out.println("El arma ya esta bloqueada");
+            return;
+        }
+
+        // Programar la recdarga después del tiempo de recarga
+        executorServiceFire = Executors.newSingleThreadScheduledExecutor();
+        isLock = true;
+        executorServiceFire.schedule(() -> {
+            System.out.println("¡Arma bloqueada!");
+            isLock = false;
+        }, firerate, TimeUnit.MILLISECONDS);
+        executorServiceFire.shutdown();
     }
-
-    private int bulletSize;
-
-    public boolean isHasPlayer() {
-        return hasPlayer;
-    }
-
-    public void setHasPlayer(boolean hasPlayer) {
-        this.hasPlayer = hasPlayer;
-    }
-
-    private boolean hasPlayer;
-
-    public int getBulletQuantity() {
-        return bulletQuantity;
-    }
-
-    public void setBulletQuantity(int bulletQuantity) {
-        this.bulletQuantity = bulletQuantity;
-    }
-
-    private int bulletQuantity;
-
-    public boolean isFront() {
-        return isFront;
-    }
-
-    public void setFront(boolean front) {
-        isFront = front;
-    }
-
-    private boolean isFront;
-
-    public void setMouseX(double mouseX) {
-        this.mouseX = mouseX;
-    }
-
-    public double getMouseY() {
-        return mouseY;
-    }
-
-    public void setMouseY(double mouseY) {
-        this.mouseY = mouseY;
-    }
-
-    private double mouseX;
-    private double mouseY;
-    private Rotate rotateX, rotateY;
-    private Image img;
-
-    private Vector center;
-
-    public double getIMAGE_WIDTH() {
-        return IMAGE_WIDTH;
-    }
-
-    public void setIMAGE_WIDTH(double IMAGE_WIDTH) {
-        this.IMAGE_WIDTH = IMAGE_WIDTH;
-    }
-
-    public double getIMAGE_HEIGHT() {
-        return IMAGE_HEIGHT;
-    }
-
-    public void setIMAGE_HEIGHT(double IMAGE_HEIGHT) {
-        this.IMAGE_HEIGHT = IMAGE_HEIGHT;
-    }
-
-    private double IMAGE_WIDTH;
-
-    private double IMAGE_HEIGHT;
-
-
-    public void setSceneX(double sceneX) {
-        SceneX = sceneX;
-    }
-
-    private double SceneX;
-
-    public double getSceneY() {
-        return SceneY;
-    }
-
-    public void setSceneY(double sceneY) {
-        SceneY = sceneY;
-    }
-
-    private double SceneY;
-    int frame;
 
     @Override
     public void draw(GraphicsContext gc) {
@@ -228,5 +146,92 @@ public class Gun extends Drawing implements Runnable{
                 throw new RuntimeException(e);
             }
         }
+    }
+
+
+    public double getIMAGE_WIDTH() {
+        return IMAGE_WIDTH;
+    }
+
+    public void setIMAGE_WIDTH(double IMAGE_WIDTH) {
+        this.IMAGE_WIDTH = IMAGE_WIDTH;
+    }
+
+    public double getIMAGE_HEIGHT() {
+        return IMAGE_HEIGHT;
+    }
+
+    public void setIMAGE_HEIGHT(double IMAGE_HEIGHT) {
+        this.IMAGE_HEIGHT = IMAGE_HEIGHT;
+    }
+
+    private double IMAGE_WIDTH;
+
+    private double IMAGE_HEIGHT;
+
+
+    public void setSceneX(double sceneX) {
+        SceneX = sceneX;
+    }
+
+
+
+    public double getSceneY() {
+        return SceneY;
+    }
+
+    public void setSceneY(double sceneY) {
+        SceneY = sceneY;
+    }
+
+    public boolean isReloading() {
+        return isReloading;
+    }
+    public boolean isMousePressed() {
+        return mousePressed;
+    }
+    public void setMousePressed(boolean mousePressed) {
+        this.mousePressed = mousePressed;
+    }
+    public boolean isHasPlayer() {
+        return hasPlayer;
+    }
+    public void setHasPlayer(boolean hasPlayer) {
+        this.hasPlayer = hasPlayer;
+    }
+    public int getBulletQuantity() {
+        return bulletQuantity;
+    }
+    public void setBulletQuantity(int bulletQuantity) {
+        this.bulletQuantity = bulletQuantity;
+    }
+    public boolean isFront() {
+        return isFront;
+    }
+    public void setFront(boolean front) {
+        isFront = front;
+    }
+    public void setMouseX(double mouseX) {
+        this.mouseX = mouseX;
+    }
+    public double getMouseY() {
+        return mouseY;
+    }
+    public double getMouseX() {
+        return mouseX;
+    }
+    public void setMouseY(double mouseY) {
+        this.mouseY = mouseY;
+    }
+    public void setReloading(boolean reloading) {
+        isReloading = reloading;
+    }
+
+    public boolean isLock() {
+        return isLock;
+    }
+
+    public void setLock(boolean lock) {
+        isLock = lock;
     }
 }
