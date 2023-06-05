@@ -9,11 +9,21 @@ public class Level {
     private int id;
     private Color color;
 
+    public ArrayList<Gun> getGuns() {
+        return guns;
+    }
+
+    public void setGuns(ArrayList<Gun> guns) {
+        this.guns = guns;
+    }
+
+    private ArrayList<Gun> guns;
     private ArrayList<Enemy> enemies;
     private ArrayList<Bullet> bullets;
 
     public Level(int id){
         this.id = id;
+        guns = new ArrayList<>();
         enemies = new ArrayList<>();
         bullets = new ArrayList<>();
     }

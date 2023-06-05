@@ -32,19 +32,20 @@ public class HelloController implements Initializable {
     private ArrayList<Level> levels;
     private int currentLevel = 0;
 
+    private double tempMouseX, tempMouseY;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         gc = canvas.getGraphicsContext2D();
+        new Thread(reproductorDeSonido).start();
         canvas.setFocusTraversable(true);
         canvas.setOnKeyPressed(this::onKeyPressed);
         canvas.setOnKeyReleased(this::onKeyReleased);
         canvas.setOnMousePressed(this::onMousePressed);
         canvas.setOnMouseMoved(this::onMouseMoved);
-        //canvas.setOnMouseDragged(this::handleMouseDragged);
         avatar = new Avatar();
-        avatar.setGun(new Gun(avatar.pos, 8, new Image("file:" + HelloApplication.class.getResource("gun/gun.png").getPath()), 2));
+        Gun gun = new Gun(new Vector(100, 200), 8, new Image("file:" + HelloApplication.class.getResource("gun/gun.png").getPath()), 2);
         new Thread(avatar).start(); //Esto ejecuta el código dentro de run() en paralelo
-        new Thread(avatar.getGun()).start();
         levels = new ArrayList<>();
 
         //Generar el primer mapa
@@ -54,6 +55,7 @@ public class HelloController implements Initializable {
         new Thread(e).start();
         l1.getEnemies().add(e);
         l1.getEnemies().add(new Enemy(new Vector(400, 300)));
+        l1.getGuns().add(gun);
         levels.add(l1);
         //Generar el segundo mapa
         Level l2 = new Level(1);
@@ -70,10 +72,15 @@ public class HelloController implements Initializable {
         avatar.setFacingRight(
                 relativePosition > 0
         );
+
+
         if(avatar.getGun()!=null){
             avatar.getGun().setSceneY(e.getSceneY());
             avatar.getGun().setSceneX(e.getSceneX());
             avatar.getGun().setFront(avatar.pos.getY()>e.getSceneY());
+        }else{
+            tempMouseX = e.getSceneX();
+            tempMouseY = e.getSceneY();
         }
     }
 
@@ -88,7 +95,6 @@ public class HelloController implements Initializable {
                 Vector diff = new Vector(diffX, diffY);
                 diff.normalize();
                 diff.setMag(15);
-
 
                 levels.get(currentLevel).getBullets().add(
                         new Bullet(
@@ -113,6 +119,7 @@ public class HelloController implements Initializable {
     private boolean Spressed = false;
     private boolean Dpressed = false;
 
+    private boolean Epressed = false;
 
     private Avatar avatar;
 
@@ -124,6 +131,7 @@ public class HelloController implements Initializable {
             case A: Apressed = false; break;
             case S: Spressed = false; break;
             case D: Dpressed = false; break;
+            case E: Epressed = false; break;
         }
     }
     public void onKeyPressed(KeyEvent event){
@@ -133,6 +141,7 @@ public class HelloController implements Initializable {
             case A: Apressed = true; break;
             case S: Spressed = true; break;
             case D: Dpressed = true; break;
+            case E: Epressed = true; break;
             case R: avatar.getGun().reload();
         }
     }
@@ -173,6 +182,9 @@ public class HelloController implements Initializable {
                     for(int i=0 ; i<level.getEnemies().size() ; i++){
                         level.getEnemies().get(i).draw(gc);
                     }
+                    for(int i=0 ; i<level.getGuns().size() ; i++){
+                        level.getGuns().get(i).draw(gc);
+                    }
                 });
 
                 //Calculos geometricos
@@ -191,6 +203,24 @@ public class HelloController implements Initializable {
                 }
 
                 //Colisiones
+                for (int i = 0; i < level.getGuns().size(); i++) {
+                    Gun gun = level.getGuns().get(i);
+                    double distance = Math.sqrt(
+                            Math.pow(gun.pos.getX()-avatar.pos.getX(), 2) +
+                                    Math.pow(gun.pos.getY()-avatar.pos.getY(), 2)
+                    );
+                    if(distance < 10){
+                        if(Epressed){
+                            gun.setSceneX(tempMouseX);
+                            gun.setSceneY(tempMouseY);
+                            avatar.pickGun(gun);
+                            level.getGuns().remove(i);
+
+                        }
+
+                    }
+                }
+
                 for(int i=0 ; i<level.getBullets().size() ; i++){
                     Bullet bn = level.getBullets().get(i);
                     for(int j=0 ; j<level.getEnemies().size() ; j++){

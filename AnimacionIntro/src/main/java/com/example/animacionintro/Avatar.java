@@ -49,6 +49,14 @@ public class Avatar extends Drawing implements Runnable{
                 50);
     }
 
+    public void pickGun(Gun gun){
+        new Thread(gun).start();
+        this.gun = gun;
+        gun.pos = this.pos;
+        gun.setHasPlayer(true);
+
+    }
+
     //Ejecutar en paralelo
     @Override
     public void run() {

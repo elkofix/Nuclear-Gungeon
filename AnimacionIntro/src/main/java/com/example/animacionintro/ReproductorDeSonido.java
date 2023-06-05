@@ -6,15 +6,17 @@ import java.io.IOException;
 
 public class ReproductorDeSonido implements Runnable {
     private String archivoSonido;
-
+    private int timesPlayed = 0;
+    File archivo;
     public ReproductorDeSonido(String archivoSonido) {
         this.archivoSonido = archivoSonido;
+        archivo = new File(archivoSonido);
     }
 
     public void run() {
         try {
             // Obtener el archivo de sonido
-            File archivo = new File(archivoSonido);
+
 
             // Crear un flujo de entrada de audio
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(archivo);
@@ -24,7 +26,22 @@ public class ReproductorDeSonido implements Runnable {
 
             // Abrir el clip con el flujo de audio
             clip.open(audioStream);
+            if(timesPlayed==0){
+                // Establecer el control de volumen del clip
+                FloatControl controlVolumen = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
 
+                // Establecer el volumen en decibelios (-80.0 a 6.0206)
+                float volumen = -80.0f; // Ajusta el volumen aquí
+                controlVolumen.setValue(volumen);
+            }else{
+                // Establecer el control de volumen del clip
+                FloatControl controlVolumen = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+
+                // Establecer el volumen en decibelios (-80.0 a 6.0206)
+                float volumen = -10.0f; // Ajusta el volumen aquí
+                controlVolumen.setValue(volumen);
+            }
+            timesPlayed++;
             // Reproducir el sonido
             clip.start();
 
