@@ -13,6 +13,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 
+import javax.sound.sampled.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
@@ -23,6 +26,8 @@ public class HelloController implements Initializable {
     @FXML
     private Canvas canvas;
     private GraphicsContext gc;
+
+    private ReproductorDeSonido reproductorDeSonido = new ReproductorDeSonido(System.getProperty("user.dir")+"/src/main/resources/audio/disparo.wav");
 
     private ArrayList<Level> levels;
     private int currentLevel = 0;
@@ -75,8 +80,9 @@ public class HelloController implements Initializable {
     private void onMousePressed(MouseEvent e) {
         if(avatar.getGun()!=null) {
             if(avatar.getGun().getBulletQuantity()>0) {
+                new Thread(reproductorDeSonido).start();
                 System.out.println("X: " + e.getX() + "Y: " + e.getY());
-
+                avatar.getGun().setMousePressed(true);
                 double diffX = e.getX() - avatar.pos.getX();
                 double diffY = e.getY() - avatar.pos.getY();
                 Vector diff = new Vector(diffX, diffY);

@@ -5,6 +5,14 @@ import javafx.scene.paint.Color;
 
 public class Bullet extends Drawing {
 
+    public Vector getDir() {
+        return dir;
+    }
+
+    public void setDir(Vector dir) {
+        this.dir = dir;
+    }
+
     private Vector dir;
     public Bullet(Vector pos, Vector dir){
         this.pos = pos;

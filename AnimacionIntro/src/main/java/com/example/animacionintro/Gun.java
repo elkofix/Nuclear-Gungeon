@@ -1,9 +1,13 @@
 package com.example.animacionintro;
 
+import javafx.animation.Interpolator;
+import javafx.animation.TranslateTransition;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
+import javafx.util.Duration;
 
 import java.util.Stack;
 import java.util.concurrent.Executors;
@@ -15,6 +19,18 @@ public class Gun extends Drawing implements Runnable{
     public boolean isReloading() {
         return isReloading;
     }
+
+
+    public boolean isMousePressed() {
+        return mousePressed;
+    }
+
+
+    public void setMousePressed(boolean mousePressed) {
+        this.mousePressed = mousePressed;
+    }
+
+    private boolean mousePressed;
 
     public void setReloading(boolean reloading) {
         isReloading = reloading;
@@ -71,8 +87,6 @@ public class Gun extends Drawing implements Runnable{
     }
 
     private int bulletSize;
-
-    private Stack<Bullet> bullets;
 
     public int getBulletQuantity() {
         return bulletQuantity;
@@ -176,7 +190,6 @@ public class Gun extends Drawing implements Runnable{
         if (reflectY) {
             gc.scale(1, -1); // Reflejar en el eje Y
         }
-
         gc.drawImage(img, IMAGE_WIDTH / 2, IMAGE_HEIGHT / 2, -IMAGE_WIDTH, -IMAGE_HEIGHT);
         gc.restore();
     }
