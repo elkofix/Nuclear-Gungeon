@@ -22,6 +22,8 @@ public class Gun extends Drawing implements Runnable{
     ScheduledExecutorService executorServiceFire;
     private int reloadTime;
     private boolean isFront;
+
+    private double rotationAngle;
     private int bulletSize;
     private boolean mousePressed;
     private int bulletQuantity;
@@ -35,9 +37,19 @@ public class Gun extends Drawing implements Runnable{
     private double SceneY;
     int frame;
 
+    public int getFirePower() {
+        return firePower;
+    }
 
-    public Gun(Vector vector, int bulletQuantity, Image img, int reloadTime, int firerate){
+    public void setFirePower(int firePower) {
+        this.firePower = firePower;
+    }
+
+    int firePower;
+
+    public Gun(Vector vector, int bulletQuantity, Image img, int reloadTime, int firerate, int firePower){
         this.center = vector;
+        this.firePower = firePower;
         this.firerate = firerate;
         pos = vector;
         IMAGE_WIDTH = img.getWidth();
@@ -106,8 +118,8 @@ public class Gun extends Drawing implements Runnable{
             // Calcular la posición de la imagen en función
             // Calcular la posición de la imagen en función de la distancia fija y el ángulo de rotación
             double angle = calculateRotationAngle(centerX, centerY, mouseX, mouseY);
-            double x = centerX + Math.cos(Math.toRadians(angle)) * IMAGE_WIDTH;
-            double y = centerY + Math.sin(Math.toRadians(angle)) * IMAGE_WIDTH;
+            double x = centerX + Math.cos(Math.toRadians(angle)) * IMAGE_WIDTH/18;
+            double y = centerY + Math.sin(Math.toRadians(angle)) * IMAGE_WIDTH/18;
 
             // Calcular el ángulo de rotación basado en la posición del mouse
             double rotationAngle = calculateRotationAngle(centerX, centerY, mouseX, mouseY);
@@ -115,16 +127,17 @@ public class Gun extends Drawing implements Runnable{
             // Determinar si la imagen debe reflejarse en el eje Y
             boolean reflectY = mouseX > centerX;
 
-            gc.translate(x, y);
+            gc.translate(x, y+IMAGE_WIDTH/40);
+            this.rotationAngle = rotationAngle;
             gc.rotate(rotationAngle);
 
             if (reflectY) {
                 gc.scale(1, -1); // Reflejar en el eje Y
             }
-            gc.drawImage(img, IMAGE_WIDTH / 2, IMAGE_HEIGHT / 2, -IMAGE_WIDTH, -IMAGE_HEIGHT);
+            gc.drawImage(img, IMAGE_WIDTH / 6, IMAGE_HEIGHT / 6, -IMAGE_WIDTH/6, -IMAGE_HEIGHT/6);
             gc.restore();
         }else{
-            gc.drawImage(img, pos.getX(), pos.getY(), IMAGE_WIDTH, IMAGE_HEIGHT);
+            gc.drawImage(img, pos.getX(), pos.getY(), IMAGE_WIDTH/6, IMAGE_HEIGHT/6);
         }
     }
 
@@ -233,5 +246,13 @@ public class Gun extends Drawing implements Runnable{
 
     public void setLock(boolean lock) {
         isLock = lock;
+    }
+
+    public double getRotationAngle() {
+        return rotationAngle;
+    }
+
+    public void setRotationAngle(double rotationAngle) {
+        this.rotationAngle = rotationAngle;
     }
 }

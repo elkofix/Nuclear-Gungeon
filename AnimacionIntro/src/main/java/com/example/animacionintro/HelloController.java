@@ -43,8 +43,9 @@ public class HelloController implements Initializable {
         canvas.setOnKeyReleased(this::onKeyReleased);
         canvas.setOnMousePressed(this::onMousePressed);
         canvas.setOnMouseMoved(this::onMouseMoved);
+        canvas.setOnMouseReleased(this::onMouseReleased);
         avatar = new Avatar();
-        Gun gun = new Gun(new Vector(100, 200), 8, new Image("file:" + HelloApplication.class.getResource("gun/gun.png").getPath()), 2, 400);
+        Gun gun = new Gun(new Vector(100, 200), 8, new Image("file:" + HelloApplication.class.getResource("gun/gun.png").getPath()), 2, 400,1);
         new Thread(avatar).start(); //Esto ejecuta el código dentro de run() en paralelo
         levels = new ArrayList<>();
 
@@ -56,7 +57,7 @@ public class HelloController implements Initializable {
         l1.getEnemies().add(e);
         l1.getEnemies().add(new Enemy(new Vector(400, 300)));
         l1.getGuns().add(gun);
-        l1.getGuns().add(new Gun(new Vector(200, 200), 2, new Image("file:" + HelloApplication.class.getResource("gun/shotgun.png").getPath()), 4, 3000));
+        l1.getGuns().add(new Gun(new Vector(200, 200), 2, new Image("file:" + HelloApplication.class.getResource("gun/shotgun.png").getPath()), 2, 1000, 4));
         levels.add(l1);
         //Generar el segundo mapa
         Level l2 = new Level(1);
@@ -76,6 +77,8 @@ public class HelloController implements Initializable {
 
 
         if(avatar.getGun()!=null){
+            tempMouseX = e.getSceneX();
+            tempMouseY = e.getSceneY();
             avatar.getGun().setSceneY(e.getSceneY());
             avatar.getGun().setSceneX(e.getSceneX());
             avatar.getGun().setFront(avatar.pos.getY()>e.getSceneY());
@@ -86,24 +89,35 @@ public class HelloController implements Initializable {
     }
 
     private void onMousePressed(MouseEvent e) {
+        if(e.isSecondaryButtonDown()){
+            rightClickPressed = true;
+        }
         if(avatar.getGun()!=null) {
             if(avatar.getGun().getBulletQuantity()>0) {
                 if(!avatar.getGun().isLock()){
                     new Thread(reproductorDeSonido).start();
                     System.out.println("X: " + e.getX() + "Y: " + e.getY());
                     avatar.getGun().setMousePressed(true);
-                    double diffX = e.getX() - avatar.pos.getX();
-                    double diffY = e.getY() - avatar.pos.getY();
-                    Vector diff = new Vector(diffX, diffY);
-                    diff.normalize();
-                    diff.setMag(15);
+                    double rand = 0;
+                    for (int i = 0; i < avatar.getGun().getFirePower(); i++) {
+                        if(avatar.getGun().getFirePower()!=1){
+                            rand = Math.random()*50;
+                        }
+                        double diffX = e.getX()+rand - avatar.pos.getX();
+                        double diffY = e.getY()+rand - avatar.pos.getY();
+                        Vector diff = new Vector(diffX, diffY);
+                        diff.normalize();
+                        diff.setMag(20);
+                        Bullet b =new Bullet(
+                                new Vector(avatar.getGun().pos.getX(), avatar.getGun().pos.getY()-10),
+                                diff
+                        );
+                        b.setRotationAngle(avatar.getGun().getRotationAngle());
+                        levels.get(currentLevel).getBullets().add(
+                         b
+                        );
+                    }
 
-                    levels.get(currentLevel).getBullets().add(
-                            new Bullet(
-                                    new Vector(avatar.pos.getX(), avatar.pos.getY()),
-                                    diff
-                            )
-                    );
                     avatar.getGun().lock();
                     avatar.getGun().setBulletQuantity(avatar.getGun().getBulletQuantity() - 1);
                 }
@@ -115,6 +129,11 @@ public class HelloController implements Initializable {
         }
     }
 
+    private void onMouseReleased(MouseEvent e){
+        if(!e.isSecondaryButtonDown()){
+            rightClickPressed = false;
+        }
+    }
 
     private boolean isAlive = true;
 
@@ -123,6 +142,7 @@ public class HelloController implements Initializable {
     private boolean Spressed = false;
     private boolean Dpressed = false;
 
+    private boolean rightClickPressed = false;
     private boolean Epressed = false;
 
     private Avatar avatar;
@@ -163,7 +183,6 @@ public class HelloController implements Initializable {
                     gc.setFill(level.getColor());
                     gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
                     avatar.setMoving(Wpressed || Spressed || Dpressed || Apressed);
-                    //avatar.draw(gc);
                     Gun gun = avatar.getGun();
                     if(gun!=null){
                         if(gun.isFront()){
@@ -243,7 +262,16 @@ public class HelloController implements Initializable {
                     }
                 }
 
-
+                if(rightClickPressed){
+                    rightClickPressed = false;
+                    double diffX = tempMouseX-avatar.pos.getX();
+                    double diffY = tempMouseY-avatar.pos.getY();
+                    double distance = Math.sqrt(diffX * diffX + diffY * diffY);
+                    double dirX = diffX / distance;
+                    double dirY = diffY / distance;
+                    avatar.pos.setX(avatar.pos.getX()+80*dirX);
+                    avatar.pos.setY(avatar.pos.getY()+80*dirY);
+                }
 
                 if(Wpressed){
                     avatar.pos.setY(avatar.pos.getY()-3);
@@ -257,6 +285,7 @@ public class HelloController implements Initializable {
                 if (Dpressed) {
                     avatar.pos.setX(avatar.pos.getX()+3);
                 }
+
 
 
                 try {

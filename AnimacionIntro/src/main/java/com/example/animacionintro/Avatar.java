@@ -4,6 +4,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
+import java.io.File;
+
 public class Avatar extends Drawing implements Runnable{
 
 
@@ -28,17 +30,18 @@ public class Avatar extends Drawing implements Runnable{
         pos.setX(100);
         pos.setY(100);
 
-        idle = new Image[6];
-        for(int i=1 ; i<=6 ; i++) {
-            String uri = "file:" + HelloApplication.class.getResource("idle/player-idle"+i+".png").getPath();
+        idle = new Image[4];
+        for(int i=1 ; i<=4   ; i++) {
+            String uri = "file:" + HelloApplication.class.getResource("idle/idle"+i+".png").getPath();
             idle[i-1] = new Image(uri);
         }
-        run = new Image[6];
-        for(int i=1 ; i<=6 ; i++) {
-            String uri = "file:" + HelloApplication.class.getResource("pistol/player-run-shoott"+i+".png").getPath();
+        run = new Image[4];
+        for(int i=1 ; i<=4 ; i++) {
+            String uri = "file:" + HelloApplication.class.getResource("run/run"+i+".png").getPath();
             run[i-1] = new Image(uri);
         }
     }
+
 
     @Override
     public void draw(GraphicsContext gc) {
@@ -61,9 +64,9 @@ public class Avatar extends Drawing implements Runnable{
     @Override
     public void run() {
         while (true) {
-            frame = (frame + 1) % 6;
+            frame = (frame + 1) % 4;
             try {
-                Thread.sleep(80);
+                Thread.sleep(120);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
