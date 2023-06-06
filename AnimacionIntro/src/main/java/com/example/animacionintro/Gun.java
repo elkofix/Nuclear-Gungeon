@@ -32,6 +32,16 @@ public class Gun extends Drawing implements Runnable{
     private double mouseY;
     private Rotate rotateX, rotateY;
     private Image img;
+
+    public boolean isShow() {
+        return isShow;
+    }
+
+    public void setShow(boolean show) {
+        isShow = show;
+    }
+
+    private boolean isShow = true;
     private Vector center;
     private double SceneX;
     private double SceneY;
@@ -89,7 +99,6 @@ public class Gun extends Drawing implements Runnable{
     }
 
     public void lock(){
-        System.out.println(bulletQuantity);
         // Detener la ejecución actual (si hay alguna)
         if (!executorServiceFire.isShutdown() && !executorServiceFire.isTerminated()) {
             System.out.println("El arma ya esta bloqueada");
@@ -109,35 +118,37 @@ public class Gun extends Drawing implements Runnable{
     @Override
     public void draw(GraphicsContext gc) {
         center = pos;
-        if(hasPlayer) {
-            gc.save();
-            double centerX = center.getX();
-            double centerY = center.getY();
-            gc.setFill(Color.BLUE);
-            gc.fillOval(mouseX, mouseY, 10, 10);
-            // Calcular la posición de la imagen en función
-            // Calcular la posición de la imagen en función de la distancia fija y el ángulo de rotación
-            double angle = calculateRotationAngle(centerX, centerY, mouseX, mouseY);
-            double x = centerX + Math.cos(Math.toRadians(angle)) * IMAGE_WIDTH/18;
-            double y = centerY + Math.sin(Math.toRadians(angle)) * IMAGE_WIDTH/18;
+        if(isShow) {
+            if (hasPlayer) {
+                gc.save();
+                double centerX = center.getX();
+                double centerY = center.getY();
+                gc.setFill(Color.BLUE);
+                gc.fillOval(mouseX, mouseY, 10, 10);
+                // Calcular la posición de la imagen en función
+                // Calcular la posición de la imagen en función de la distancia fija y el ángulo de rotación
+                double angle = calculateRotationAngle(centerX, centerY, mouseX, mouseY);
+                double x = centerX + Math.cos(Math.toRadians(angle)) * IMAGE_WIDTH / 18;
+                double y = centerY + Math.sin(Math.toRadians(angle)) * IMAGE_WIDTH / 18;
 
-            // Calcular el ángulo de rotación basado en la posición del mouse
-            double rotationAngle = calculateRotationAngle(centerX, centerY, mouseX, mouseY);
+                // Calcular el ángulo de rotación basado en la posición del mouse
+                double rotationAngle = calculateRotationAngle(centerX, centerY, mouseX, mouseY);
 
-            // Determinar si la imagen debe reflejarse en el eje Y
-            boolean reflectY = mouseX > centerX;
+                // Determinar si la imagen debe reflejarse en el eje Y
+                boolean reflectY = mouseX > centerX;
 
-            gc.translate(x, y+IMAGE_WIDTH/40);
-            this.rotationAngle = rotationAngle;
-            gc.rotate(rotationAngle);
+                gc.translate(x, y + IMAGE_WIDTH / 40);
+                this.rotationAngle = rotationAngle;
+                gc.rotate(rotationAngle);
 
-            if (reflectY) {
-                gc.scale(1, -1); // Reflejar en el eje Y
+                if (reflectY) {
+                    gc.scale(1, -1); // Reflejar en el eje Y
+                }
+                gc.drawImage(img, IMAGE_WIDTH / 6, IMAGE_HEIGHT / 6, -IMAGE_WIDTH / 6, -IMAGE_HEIGHT / 6);
+                gc.restore();
+            } else {
+                gc.drawImage(img, pos.getX(), pos.getY(), IMAGE_WIDTH / 6, IMAGE_HEIGHT / 6);
             }
-            gc.drawImage(img, IMAGE_WIDTH / 6, IMAGE_HEIGHT / 6, -IMAGE_WIDTH/6, -IMAGE_HEIGHT/6);
-            gc.restore();
-        }else{
-            gc.drawImage(img, pos.getX(), pos.getY(), IMAGE_WIDTH/6, IMAGE_HEIGHT/6);
         }
     }
 

@@ -1,6 +1,9 @@
 package com.example.animacionintro;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -12,6 +15,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 
 import javax.sound.sampled.*;
 import java.io.File;
@@ -19,6 +23,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class HelloController implements Initializable {
 
@@ -29,6 +36,7 @@ public class HelloController implements Initializable {
 
     private ReproductorDeSonido reproductorDeSonido = new ReproductorDeSonido(System.getProperty("user.dir")+"/src/main/resources/audio/disparo.wav");
 
+    int momentum = 0;
     private ArrayList<Level> levels;
     private int currentLevel = 0;
 
@@ -45,7 +53,7 @@ public class HelloController implements Initializable {
         canvas.setOnMouseMoved(this::onMouseMoved);
         canvas.setOnMouseReleased(this::onMouseReleased);
         avatar = new Avatar();
-        Gun gun = new Gun(new Vector(100, 200), 8, new Image("file:" + HelloApplication.class.getResource("gun/gun.png").getPath()), 2, 400,1);
+        Gun gun = new Gun(new Vector(100, 200), 8, new Image("file:" + HelloApplication.class.getResource("gun/gun.png").getPath()), 2, 300,1);
         new Thread(avatar).start(); //Esto ejecuta el código dentro de run() en paralelo
         levels = new ArrayList<>();
 
@@ -91,44 +99,48 @@ public class HelloController implements Initializable {
     private void onMousePressed(MouseEvent e) {
         if(e.isSecondaryButtonDown()){
             rightClickPressed = true;
-        }
-        if(avatar.getGun()!=null) {
-            if(avatar.getGun().getBulletQuantity()>0) {
-                if(!avatar.getGun().isLock()){
-                    new Thread(reproductorDeSonido).start();
-                    System.out.println("X: " + e.getX() + "Y: " + e.getY());
-                    avatar.getGun().setMousePressed(true);
-                    double rand = 0;
-                    for (int i = 0; i < avatar.getGun().getFirePower(); i++) {
-                        if(avatar.getGun().getFirePower()!=1){
-                            rand = Math.random()*50;
-                        }
-                        double diffX = e.getX()+rand - avatar.pos.getX();
-                        double diffY = e.getY()+rand - avatar.pos.getY();
-                        Vector diff = new Vector(diffX, diffY);
-                        diff.normalize();
-                        diff.setMag(20);
-                        Bullet b =new Bullet(
-                                new Vector(avatar.getGun().pos.getX(), avatar.getGun().pos.getY()-10),
-                                diff
-                        );
-                        b.setRotationAngle(avatar.getGun().getRotationAngle());
-                        levels.get(currentLevel).getBullets().add(
-                         b
-                        );
-                    }
+        }else {
 
-                    avatar.getGun().lock();
-                    avatar.getGun().setBulletQuantity(avatar.getGun().getBulletQuantity() - 1);
-                }
-            }else{
-                if(!avatar.getGun().isReloading()){
-                    avatar.getGun().reload();
+            if(avatar.getGun()!=null) {
+                if(avatar.getGun().getBulletQuantity()>0) {
+                    if(!avatar.getGun().isLock() && !avatar.isLock()){
+                        new Thread(reproductorDeSonido).start();
+                        System.out.println("X: " + e.getX() + "Y: " + e.getY());
+                        avatar.getGun().setMousePressed(true);
+                        double rand = 0;
+                        for (int i = 0; i < avatar.getGun().getFirePower(); i++) {
+                            if(avatar.getGun().getFirePower()!=1){
+                                rand = Math.random()*50;
+                            }
+                            double diffX = e.getX()+rand - avatar.getGun().pos.getX();
+                            double diffY = e.getY()+rand - avatar.getGun().pos.getY();
+                            Vector diff = new Vector(diffX, diffY);
+                            diff.normalize();
+                            diff.setMag(20);
+                            Bullet b =new Bullet(
+                                    new Vector(avatar.getGun().pos.getX(), avatar.getGun().pos.getY()),
+                                    diff
+                            );
+                            b.setRotationAngle(avatar.getGun().getRotationAngle());
+                            levels.get(currentLevel).getBullets().add(
+                             b
+                            );
+                        }
+
+                        avatar.getGun().lock();
+                        avatar.getGun().setBulletQuantity(avatar.getGun().getBulletQuantity() - 1);
+                    }
+                }else{
+                    if(!avatar.getGun().isReloading()){
+                        avatar.getGun().reload();
+                    }
                 }
             }
         }
     }
 
+    double dirX;
+    double dirY;
     private void onMouseReleased(MouseEvent e){
         if(!e.isSecondaryButtonDown()){
             rightClickPressed = false;
@@ -141,6 +153,11 @@ public class HelloController implements Initializable {
     private boolean Wpressed = false;
     private boolean Spressed = false;
     private boolean Dpressed = false;
+
+    private boolean tempApressed = false;
+    private boolean tempWpressed = false;
+    private boolean tempSpressed = false;
+    private boolean tempDpressed = false;
 
     private boolean rightClickPressed = false;
     private boolean Epressed = false;
@@ -263,29 +280,40 @@ public class HelloController implements Initializable {
                 }
 
                 if(rightClickPressed){
-                    rightClickPressed = false;
-                    double diffX = tempMouseX-avatar.pos.getX();
-                    double diffY = tempMouseY-avatar.pos.getY();
-                    double distance = Math.sqrt(diffX * diffX + diffY * diffY);
-                    double dirX = diffX / distance;
-                    double dirY = diffY / distance;
-                    avatar.pos.setX(avatar.pos.getX()+80*dirX);
-                    avatar.pos.setY(avatar.pos.getY()+80*dirY);
+                    if(!avatar.isRolling() && avatar.isMoving() && !avatar.isLock()) {
+                        rightClickPressed = false;
+                        avatar.setRolling(true);
+                        if(avatar.getGun()!=null){
+                            avatar.getGun().setShow(false);
+                            avatar.setLock(true);
+                        }
+                        tempApressed = Apressed;
+                        tempWpressed = Wpressed;
+                        tempSpressed = Spressed;
+                        tempDpressed = Dpressed;
+                        Timeline timeline = new Timeline(
+                                new KeyFrame(Duration.ZERO, this::rollCharacter),
+                                new KeyFrame(Duration.millis(10), this::rollCharacter)
+                        );
+                        timeline.setCycleCount(40);
+                        timeline.setOnFinished(this::stopRoll);
+                        timeline.play();
+                    }
                 }
-
-                if(Wpressed){
-                    avatar.pos.setY(avatar.pos.getY()-3);
+                if(!avatar.isRolling() && !avatar.isLock()) {
+                    if (Wpressed) {
+                        avatar.pos.setY(avatar.pos.getY() - 3);
+                    }
+                    if (Apressed) {
+                        avatar.pos.setX(avatar.pos.getX() - 3);
+                    }
+                    if (Spressed) {
+                        avatar.pos.setY(avatar.pos.getY() + 3);
+                    }
+                    if (Dpressed) {
+                        avatar.pos.setX(avatar.pos.getX() + 3);
+                    }
                 }
-                if (Apressed) {
-                    avatar.pos.setX(avatar.pos.getX()-3);
-                }
-                if (Spressed) {
-                    avatar.pos.setY(avatar.pos.getY()+3);
-                }
-                if (Dpressed) {
-                    avatar.pos.setX(avatar.pos.getX()+3);
-                }
-
 
 
                 try {
@@ -294,6 +322,18 @@ public class HelloController implements Initializable {
             }
         });
         ae.start();
+    }
+
+    private void stopRoll(ActionEvent actionEvent) {
+        avatar.setRolling(false);
+        avatar.lock();
+        if(avatar.getGun()!=null){
+            avatar.getGun().setShow(true);
+        }
+    }
+
+    private void rollCharacter(ActionEvent actionEvent) {
+        avatar.roll(tempWpressed, tempApressed, tempDpressed, tempSpressed);
     }
 
 
