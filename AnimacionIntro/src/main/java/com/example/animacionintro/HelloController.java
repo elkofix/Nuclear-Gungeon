@@ -203,6 +203,7 @@ public class HelloController implements Initializable {
             case S: Spressed = true; break;
             case D: Dpressed = true; break;
             case E: Epressed = true; break;
+            case SPACE: avatar.setCurrentLives(avatar.getCurrentLives()-1); break;
             case R: avatar.getGun().reload();
         }
     }

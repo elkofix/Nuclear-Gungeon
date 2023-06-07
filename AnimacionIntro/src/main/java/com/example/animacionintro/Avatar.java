@@ -20,6 +20,24 @@ public class Avatar extends Drawing implements Runnable{
     }
 
 
+    public int getCurrentLives() {
+        return currentLives;
+    }
+
+    public void setCurrentLives(int currentLives) {
+        this.currentLives = currentLives;
+    }
+
+    private int currentLives;
+
+    public int getLives() {
+        return lives;
+    }
+
+    public void setLives(int lives) {
+        this.lives = lives;
+    }
+
     private int lives;
     public boolean isAttacking() {
         return isAttacking;
@@ -70,8 +88,11 @@ public class Avatar extends Drawing implements Runnable{
     private boolean isMoving;
     private boolean isFacingRight = true;
 
+    Image heart = new Image("file:" + HelloApplication.class.getResource("heart/heart1.png").getPath());
+    Image empty = new Image("file:" + HelloApplication.class.getResource("heart/heart0.png").getPath());
     public Avatar(){
         lives = 8;
+        currentLives = lives;
         pos.setX(100);
         pos.setY(100);
         executorService.shutdown();
@@ -119,6 +140,23 @@ public class Avatar extends Drawing implements Runnable{
                 pos.getY()-25,
                 isFacingRight?50:-50,
                 50);
+        double width=0;
+        for (int i = 0; i < currentLives; i++) {
+            gc.drawImage(heart, width, 0, 30,30);
+            width+=30;
+        }
+        int rest = lives-currentLives;
+        if(rest<=lives){
+            for (int i = 0; i < lives-currentLives; i++) {
+                gc.drawImage(empty, width, 0, 30,30);
+                width+=30;
+            }
+        }else{
+            for (int i = 0; i < lives; i++) {
+                gc.drawImage(empty, width, 0, 30,30);
+                width+=30;
+            }
+        }
     }
 
     public void pickGun(Gun gun){
