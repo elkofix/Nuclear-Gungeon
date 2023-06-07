@@ -19,6 +19,17 @@ public class Avatar extends Drawing implements Runnable{
         isLock = lock;
     }
 
+
+    private int lives;
+    public boolean isAttacking() {
+        return isAttacking;
+    }
+
+    public void setAttacking(boolean attacking) {
+        isAttacking = attacking;
+    }
+
+    private boolean isAttacking;
     private boolean isLock;
     private Image[] idle;
 
@@ -35,6 +46,16 @@ public class Avatar extends Drawing implements Runnable{
     private Image[] run;
 
     private Image[] roll;
+    private Image[] hit;
+
+    public int getFrame() {
+        return frame;
+    }
+
+    public void setFrame(int frame) {
+        this.frame = frame;
+    }
+
     private int frame = 0;
 
     public boolean isRolling() {
@@ -50,6 +71,7 @@ public class Avatar extends Drawing implements Runnable{
     private boolean isFacingRight = true;
 
     public Avatar(){
+        lives = 8;
         pos.setX(100);
         pos.setY(100);
         executorService.shutdown();
@@ -69,6 +91,11 @@ public class Avatar extends Drawing implements Runnable{
             String uri = "file:" + HelloApplication.class.getResource("roll/roll"+i+".png").getPath();
             roll[i-1] = new Image(uri);
         }
+        hit = new Image[4];
+        for(int i=1 ; i<=4 ; i++) {
+            String uri = "file:" + HelloApplication.class.getResource("hit/hit"+i+".png").getPath();
+            hit[i-1] = new Image(uri);
+        }
     }
 
     public void lock(){
@@ -81,13 +108,13 @@ public class Avatar extends Drawing implements Runnable{
         isLock = true;
         executorService.schedule(() -> {
             isLock = false;
-        }, 100, TimeUnit.MILLISECONDS);
+        }, 200, TimeUnit.MILLISECONDS);
         executorService.shutdown();
     }
 
     @Override
     public void draw(GraphicsContext gc) {
-        gc.drawImage(isRolling ? roll[frame] : (isMoving ? run[frame] : idle[frame]),
+        gc.drawImage(isRolling ? roll[frame] : (isAttacking ? hit[frame] : (isMoving ? run[frame] : idle[frame])),
                 isFacingRight?pos.getX()-25:pos.getX()+25,
                 pos.getY()-25,
                 isFacingRight?50:-50,

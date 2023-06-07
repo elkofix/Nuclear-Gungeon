@@ -55,6 +55,7 @@ public class Gun extends Drawing implements Runnable{
         this.firePower = firePower;
     }
 
+    Image aim = new Image("file:" + HelloApplication.class.getResource("aim/aim.png").getPath());
     int firePower;
 
     public Gun(Vector vector, int bulletQuantity, Image img, int reloadTime, int firerate, int firePower){
@@ -124,7 +125,7 @@ public class Gun extends Drawing implements Runnable{
                 double centerX = center.getX();
                 double centerY = center.getY();
                 gc.setFill(Color.BLUE);
-                gc.fillOval(mouseX, mouseY, 10, 10);
+                gc.drawImage(aim, mouseX-10, mouseY-10, 20, 20);
                 // Calcular la posición de la imagen en función
                 // Calcular la posición de la imagen en función de la distancia fija y el ángulo de rotación
                 double angle = calculateRotationAngle(centerX, centerY, mouseX, mouseY);

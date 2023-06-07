@@ -34,7 +34,7 @@ public class HelloController implements Initializable {
     private Canvas canvas;
     private GraphicsContext gc;
 
-    private ReproductorDeSonido reproductorDeSonido = new ReproductorDeSonido(System.getProperty("user.dir")+"/src/main/resources/audio/disparo.wav");
+    private ReproductorDeSonido reproductorDeSonido = new ReproductorDeSonido(System.getProperty("user.dir")+"/AnimacionIntro/src/main/resources/audio/disparo.wav");
 
     int momentum = 0;
     private ArrayList<Level> levels;
@@ -46,6 +46,7 @@ public class HelloController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         gc = canvas.getGraphicsContext2D();
         new Thread(reproductorDeSonido).start();
+        canvas.setCursor(javafx.scene.Cursor.NONE);
         canvas.setFocusTraversable(true);
         canvas.setOnKeyPressed(this::onKeyPressed);
         canvas.setOnKeyReleased(this::onKeyReleased);
@@ -100,7 +101,6 @@ public class HelloController implements Initializable {
         if(e.isSecondaryButtonDown()){
             rightClickPressed = true;
         }else {
-
             if(avatar.getGun()!=null) {
                 if(avatar.getGun().getBulletQuantity()>0) {
                     if(!avatar.getGun().isLock() && !avatar.isLock()){
@@ -135,8 +135,28 @@ public class HelloController implements Initializable {
                         avatar.getGun().reload();
                     }
                 }
+            }else{
+
+                Timeline timeline = new Timeline(
+                        new KeyFrame(Duration.ZERO, this::punchCharacter),
+                        new KeyFrame(Duration.millis(10), this::punchCharacter)
+                );
+                timeline.setCycleCount(40);
+                timeline.setOnFinished(this::stopPunch);
+                timeline.play();
             }
         }
+    }
+
+    private void punchCharacter(ActionEvent actionEvent) {
+        avatar.setAttacking(true);
+        avatar.setLock(true);
+    }
+
+    private void stopPunch(ActionEvent actionEvent) {
+        avatar.setFrame(3);
+        avatar.setLock(false);
+        avatar.setAttacking(false);
     }
 
     double dirX;
@@ -255,6 +275,21 @@ public class HelloController implements Initializable {
                             gun.setSceneY(tempMouseY);
                             avatar.pickGun(gun);
                             level.getGuns().remove(i);
+
+                        }
+
+                    }
+                }
+
+                for (int i = 0; i < level.getEnemies().size(); i++) {
+                    Enemy ene = level.getEnemies().get(i);
+                    double distance = Math.sqrt(
+                            Math.pow(ene.pos.getX()-avatar.pos.getX(), 2) +
+                                    Math.pow(ene.pos.getY()-avatar.pos.getY(), 2)
+                    );
+                    if(distance < 40){
+                        if(avatar.isAttacking()){;
+                            level.getEnemies().remove(i);
 
                         }
 
