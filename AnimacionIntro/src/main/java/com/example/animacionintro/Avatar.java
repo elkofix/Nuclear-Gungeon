@@ -114,8 +114,8 @@ public class Avatar extends Drawing implements Runnable{
     private boolean rightClickPressed = false;
     public boolean Epressed = false;
 
-    Image heart = new Image("file:" + HelloApplication.class.getResource("heart/heart1.png").getPath());
-    Image empty = new Image("file:" + HelloApplication.class.getResource("heart/heart0.png").getPath());
+    Image heart = new Image("file:" + HelloApplication.class.getResource("players/dandy/heart/heart1.png").getPath());
+    Image empty = new Image("file:" + HelloApplication.class.getResource("players/dandy/heart/heart0.png").getPath());
     public Avatar(){
         lives = 8;
         new Thread(reproductorDeSonido).start();
@@ -124,25 +124,28 @@ public class Avatar extends Drawing implements Runnable{
         speed = 3;
         currentLives = lives;
         executorService.shutdown();
+        getPlayerImages();
+    }
+    public void getPlayerImages(){
         idle = new Image[4];
         for(int i=1 ; i<=4   ; i++) {
-            String uri = "file:" + HelloApplication.class.getResource("idle/idle"+i+".png").getPath();
+            String uri = "file:" + HelloApplication.class.getResource("players/dandy/idle/idle"+i+".png").getPath();
             idle[i-1] = new Image(uri);
         }
         run = new Image[4];
         for(int i=1 ; i<=4 ; i++) {
-            String uri = "file:" + HelloApplication.class.getResource("run/run"+i+".png").getPath();
+            String uri = "file:" + HelloApplication.class.getResource("players/dandy/run/run"+i+".png").getPath();
             run[i-1] = new Image(uri);
         }
 
         roll = new Image[4];
         for(int i=1 ; i<=4 ; i++) {
-            String uri = "file:" + HelloApplication.class.getResource("roll/roll"+i+".png").getPath();
+            String uri = "file:" + HelloApplication.class.getResource("players/dandy/roll/roll"+i+".png").getPath();
             roll[i-1] = new Image(uri);
         }
         hit = new Image[4];
         for(int i=1 ; i<=4 ; i++) {
-            String uri = "file:" + HelloApplication.class.getResource("hit/hit"+i+".png").getPath();
+            String uri = "file:" + HelloApplication.class.getResource("players/dandy/hit/hit"+i+".png").getPath();
             hit[i-1] = new Image(uri);
         }
     }
