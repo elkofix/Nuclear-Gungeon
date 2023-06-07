@@ -27,12 +27,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class HelloController implements Initializable {
+public class HelloController implements Initializable, Runnable {
 
 
     @FXML
     private Canvas canvas;
+    final int originalTileSize = 16;
+    final int scale = 3;
+
+    final int tileSize = originalTileSize * scale;
+    final int maxScreenCol = 16;
+    final int maxScreenRow = 12;
+    final int screenWidth = tileSize * maxScreenCol;
+    final int screenHeight = tileSize * maxScreenRow;
+
     private GraphicsContext gc;
+
+    Thread gameThread;
 
     private ReproductorDeSonido reproductorDeSonido = new ReproductorDeSonido(System.getProperty("user.dir")+"/AnimacionIntro/src/main/resources/audio/disparo.wav");
 
@@ -44,6 +55,10 @@ public class HelloController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        canvas.prefHeight(screenHeight);
+        canvas.prefWidth(screenWidth);
+        gameThread = new Thread(this);
+
         gc = canvas.getGraphicsContext2D();
         new Thread(reproductorDeSonido).start();
         canvas.setCursor(javafx.scene.Cursor.NONE);
@@ -75,8 +90,7 @@ public class HelloController implements Initializable {
         l2.getEnemies().add(new Enemy(new Vector(100, 300)));
         l2.getEnemies().add(new Enemy(new Vector(300, 300)));
         levels.add(l2);
-
-        draw();
+        gameThread.start();
     }
     private void onMouseMoved(MouseEvent e) {
         double relativePosition = e.getX()-avatar.pos.getX();
@@ -103,7 +117,7 @@ public class HelloController implements Initializable {
         }else {
             if(avatar.getGun()!=null) {
                 if(avatar.getGun().getBulletQuantity()>0) {
-                    if(!avatar.getGun().isLock() && !avatar.isLock()){
+                    if(!avatar.getGun().isLock() && !avatar.isLock() && !avatar.getGun().isReloading()){
                         new Thread(reproductorDeSonido).start();
                         System.out.println("X: " + e.getX() + "Y: " + e.getY());
                         avatar.getGun().setMousePressed(true);
@@ -207,159 +221,6 @@ public class HelloController implements Initializable {
             case R: avatar.getGun().reload();
         }
     }
-
-
-    public void draw(){
-        //
-        Thread ae = new Thread(()->{
-            while(isAlive){
-                //Dibujar en el lienzo
-                Level level = levels.get(currentLevel);
-
-                Platform.runLater(()->{//Runnable
-                    //Lo que hagamos aqui, corre en el main thread
-                    gc.setFill(level.getColor());
-                    gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
-                    avatar.setMoving(Wpressed || Spressed || Dpressed || Apressed);
-                    Gun gun = avatar.getGun();
-                    if(gun!=null){
-                        if(gun.isFront()){
-                            gun.draw(gc);
-                            avatar.draw(gc);
-                        }else{
-                            avatar.draw(gc);
-                            gun.draw(gc);
-                        }
-                    }else {
-                        avatar.draw(gc);
-                    }
-
-                    for(int i=0 ; i<level.getBullets().size() ; i++){
-                        level.getBullets().get(i).draw(gc);
-                        if(isOutside(level.getBullets().get(i).pos.getX(), level.getBullets().get(i).pos.getY())){
-                            level.getBullets().remove(i);
-                        }
-                    }
-                    for(int i=0 ; i<level.getEnemies().size() ; i++){
-                        level.getEnemies().get(i).draw(gc);
-                    }
-                    for(int i=0 ; i<level.getGuns().size() ; i++){
-                        level.getGuns().get(i).draw(gc);
-                    }
-                });
-
-                //Calculos geometricos
-
-
-                //Paredes
-                if(avatar.pos.getX() < 25){
-                    avatar.pos.setX(25);
-                }
-                if(avatar.pos.getY() > canvas.getHeight() - 25){
-                    avatar.pos.setY( canvas.getHeight() -25 );
-                }
-                if(avatar.pos.getY() < 0){
-                    currentLevel = 1;
-                    avatar.pos.setY(canvas.getHeight());
-                }
-
-                //Colisiones
-                for (int i = 0; i < level.getGuns().size(); i++) {
-                    Gun gun = level.getGuns().get(i);
-                    double distance = Math.sqrt(
-                            Math.pow(gun.pos.getX()-avatar.pos.getX(), 2) +
-                                    Math.pow(gun.pos.getY()-avatar.pos.getY(), 2)
-                    );
-                    if(distance < 40){
-                        if(Epressed){
-                            gun.setSceneX(tempMouseX);
-                            gun.setSceneY(tempMouseY);
-                            avatar.pickGun(gun);
-                            level.getGuns().remove(i);
-
-                        }
-
-                    }
-                }
-
-                for (int i = 0; i < level.getEnemies().size(); i++) {
-                    Enemy ene = level.getEnemies().get(i);
-                    double distance = Math.sqrt(
-                            Math.pow(ene.pos.getX()-avatar.pos.getX(), 2) +
-                                    Math.pow(ene.pos.getY()-avatar.pos.getY(), 2)
-                    );
-                    if(distance < 40){
-                        if(avatar.isAttacking()){;
-                            level.getEnemies().remove(i);
-
-                        }
-
-                    }
-                }
-
-                for(int i=0 ; i<level.getBullets().size() ; i++){
-                    Bullet bn = level.getBullets().get(i);
-                    for(int j=0 ; j<level.getEnemies().size() ; j++){
-                        Enemy en = level.getEnemies().get(j);
-
-                        double distance = Math.sqrt(
-                                Math.pow(en.pos.getX()-bn.pos.getX(), 2) +
-                                        Math.pow(en.pos.getY()-bn.pos.getY(), 2)
-                        );
-
-                        if(distance < 15){
-                            level.getBullets().remove(i);
-                            level.getEnemies().remove(j);
-                        }
-
-                    }
-                }
-
-                if(rightClickPressed){
-                    if(!avatar.isRolling() && avatar.isMoving() && !avatar.isLock()) {
-                        rightClickPressed = false;
-                        avatar.setRolling(true);
-                        if(avatar.getGun()!=null){
-                            avatar.getGun().setShow(false);
-                            avatar.setLock(true);
-                        }
-                        tempApressed = Apressed;
-                        tempWpressed = Wpressed;
-                        tempSpressed = Spressed;
-                        tempDpressed = Dpressed;
-                        Timeline timeline = new Timeline(
-                                new KeyFrame(Duration.ZERO, this::rollCharacter),
-                                new KeyFrame(Duration.millis(10), this::rollCharacter)
-                        );
-                        timeline.setCycleCount(40);
-                        timeline.setOnFinished(this::stopRoll);
-                        timeline.play();
-                    }
-                }
-                if(!avatar.isRolling() && !avatar.isLock()) {
-                    if (Wpressed) {
-                        avatar.pos.setY(avatar.pos.getY() - 3);
-                    }
-                    if (Apressed) {
-                        avatar.pos.setX(avatar.pos.getX() - 3);
-                    }
-                    if (Spressed) {
-                        avatar.pos.setY(avatar.pos.getY() + 3);
-                    }
-                    if (Dpressed) {
-                        avatar.pos.setX(avatar.pos.getX() + 3);
-                    }
-                }
-
-
-                try {
-                    Thread.sleep(16);
-                } catch (InterruptedException e) {e.printStackTrace();}
-            }
-        });
-        ae.start();
-    }
-
     private void stopRoll(ActionEvent actionEvent) {
         avatar.setRolling(false);
         avatar.lock();
@@ -378,6 +239,158 @@ public class HelloController implements Initializable {
     }
 
 
+    @Override
+    public void run() {
+        while (gameThread!=null){
+                //Dibujar en el lienzo
+                update();
+                repaint();
+
+        }
+    }
+
+    public void update(){
+        Level level = levels.get(currentLevel);
+        if(avatar.pos.getX() < 25){
+            avatar.pos.setX(25);
+        }
+        if(avatar.pos.getY() > canvas.getHeight() - 25){
+            avatar.pos.setY( canvas.getHeight() -25 );
+        }
+        if(avatar.pos.getY() < 0){
+            currentLevel = 1;
+            avatar.pos.setY(canvas.getHeight());
+        }
+
+        //Colisiones
+        for (int i = 0; i < level.getGuns().size(); i++) {
+            Gun gun = level.getGuns().get(i);
+            double distance = Math.sqrt(
+                    Math.pow(gun.pos.getX()-avatar.pos.getX(), 2) +
+                            Math.pow(gun.pos.getY()-avatar.pos.getY(), 2)
+            );
+            if(distance < 40){
+                if(Epressed){
+                    gun.setSceneX(tempMouseX);
+                    gun.setSceneY(tempMouseY);
+                    avatar.pickGun(gun);
+                    level.getGuns().remove(i);
+
+                }
+
+            }
+        }
+
+        for (int i = 0; i < level.getEnemies().size(); i++) {
+            Enemy ene = level.getEnemies().get(i);
+            double distance = Math.sqrt(
+                    Math.pow(ene.pos.getX()-avatar.pos.getX(), 2) +
+                            Math.pow(ene.pos.getY()-avatar.pos.getY(), 2)
+            );
+            if(distance < 40){
+                if(avatar.isAttacking()){;
+                    level.getEnemies().remove(i);
+
+                }
+
+            }
+        }
+
+        for(int i=0 ; i<level.getBullets().size() ; i++){
+            Bullet bn = level.getBullets().get(i);
+            for(int j=0 ; j<level.getEnemies().size() ; j++){
+                Enemy en = level.getEnemies().get(j);
+
+                double distance = Math.sqrt(
+                        Math.pow(en.pos.getX()-bn.pos.getX(), 2) +
+                                Math.pow(en.pos.getY()-bn.pos.getY(), 2)
+                );
+
+                if(distance < 15){
+                    level.getBullets().remove(i);
+                    level.getEnemies().remove(j);
+                }
+
+            }
+        }
+
+        if(rightClickPressed){
+            if(!avatar.isRolling() && avatar.isMoving() && !avatar.isLock()) {
+                rightClickPressed = false;
+                avatar.setRolling(true);
+                if(avatar.getGun()!=null){
+                    avatar.getGun().setShow(false);
+                    avatar.setLock(true);
+                }
+                tempApressed = Apressed;
+                tempWpressed = Wpressed;
+                tempSpressed = Spressed;
+                tempDpressed = Dpressed;
+                Timeline timeline = new Timeline(
+                        new KeyFrame(Duration.ZERO, this::rollCharacter),
+                        new KeyFrame(Duration.millis(10), this::rollCharacter)
+                );
+                timeline.setCycleCount(40);
+                timeline.setOnFinished(this::stopRoll);
+                timeline.play();
+            }
+        }
+        if(!avatar.isRolling() && !avatar.isLock()) {
+            if (Wpressed) {
+                avatar.pos.setY(avatar.pos.getY() - 3);
+            }
+            if (Apressed) {
+                avatar.pos.setX(avatar.pos.getX() - 3);
+            }
+            if (Spressed) {
+                avatar.pos.setY(avatar.pos.getY() + 3);
+            }
+            if (Dpressed) {
+                avatar.pos.setX(avatar.pos.getX() + 3);
+            }
+        }
+
+
+        try {
+            Thread.sleep(16);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+
+        }
+
+    }
+
+    public void repaint(){
+        Level level = levels.get(currentLevel);
+        gc.setFill(level.getColor());
+        gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
+        avatar.setMoving(Wpressed || Spressed || Dpressed || Apressed);
+        Gun gun = avatar.getGun();
+        if(gun!=null){
+            if(gun.isFront()){
+                gun.draw(gc);
+                avatar.draw(gc);
+            }else{
+                avatar.draw(gc);
+                gun.draw(gc);
+            }
+        }else {
+            avatar.draw(gc);
+        }
+
+        for(int i=0 ; i<level.getBullets().size() ; i++){
+            level.getBullets().get(i).draw(gc);
+            if(isOutside(level.getBullets().get(i).pos.getX(), level.getBullets().get(i).pos.getY())){
+                level.getBullets().remove(i);
+            }
+        }
+        for(int i=0 ; i<level.getEnemies().size() ; i++){
+            level.getEnemies().get(i).draw(gc);
+        }
+        for(int i=0 ; i<level.getGuns().size() ; i++){
+            level.getGuns().get(i).draw(gc);
+        }
+    }
 }
 
 
