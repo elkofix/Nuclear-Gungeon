@@ -23,6 +23,7 @@ public class Level {
 
     public Level(int id){
         this.id = id;
+        this.id = id+1-1;
         guns = new ArrayList<>();
         enemies = new ArrayList<>();
         bullets = new ArrayList<>();
