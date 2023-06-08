@@ -26,7 +26,7 @@ public class Level {
 	private ArrayList<Enemy> enemies;
 	private ArrayList<Bullet> bullets;
 	private int[][] levelDistribution;
-	
+
     public Level(int id){
         this.id = id;
         this.id = id+1-1;

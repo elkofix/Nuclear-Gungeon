@@ -33,15 +33,16 @@ public class UI {
         this.time = time;
     }
 
-    public void draw(GraphicsContext gc){
+    public void drawBullets(GraphicsContext gc){
         if(gp.avatar.getGun()!=null){
             gc.setFont(arial_40);
             gc.setFill(Color.GREEN);
             gc.strokeText("Bullets ="+gp.avatar.getGun().getBulletQuantity(), 50, 50);
         }
+    }
 
+    public void drawMessage(GraphicsContext gc){
         if(messageOn){
-
             gc.setFont(arial_10);
             gc.strokeText(message, gp.avatar.pos.getX()-30, gp.avatar.pos.getY()-30);
             messageCounter++;
@@ -50,6 +51,9 @@ public class UI {
                 messageCounter =0;
             }
         }
+    }
+
+    public void drawLive(GraphicsContext gc){
         double width=0;
         for (int i = 0; i < gp.avatar.getCurrentLives(); i++) {
             gc.drawImage(heart, width, 0, 30,30);
@@ -67,6 +71,20 @@ public class UI {
                 width+=30;
             }
         }
-        gc.drawImage(img, 20, 30, 18,18);
+    }
+    public void draw(GraphicsContext gc){
+        if(gp.gameState == gp.playState) {
+            drawBullets(gc);
+            drawMessage(gc);
+            drawLive(gc);
+            gc.drawImage(img, 20, 30, 18, 18);
+        }
+        if(gp.gameState == gp.gameOverState){
+            gc.setFill(Color.rgb(0,0,0, .5));
+            gc.setFont(arial_40);
+            gc.fillRect(0,0,gp.screenWidth, gp.screenHeight);
+            gc.strokeText("Game over", 200, 200);
+            gp.gameThread=null;
+        }
     }
 }

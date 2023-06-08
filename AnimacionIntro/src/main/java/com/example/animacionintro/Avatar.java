@@ -63,6 +63,8 @@ public class Avatar extends Drawing implements Runnable{
     private boolean isLock;
     private Image[] idle;
 
+    public HelloController gp;
+
     public Gun getGun() {
         return gun;
     }
@@ -121,6 +123,7 @@ public class Avatar extends Drawing implements Runnable{
         new Thread(reproductorDeSonido).start();
         pos.setY(100);
         pos.setX(100);
+        world = pos;
         speed = 3;
         currentLives = lives;
         executorService.shutdown();
@@ -185,7 +188,9 @@ public class Avatar extends Drawing implements Runnable{
                     }
                 }else{
                     if(!getGun().isReloading()){
+                        gp.ui.showMessage("Recargando...", gun.reloadTime*60);
                         getGun().reload();
+
                     }
                 }
             }else{
@@ -219,7 +224,8 @@ public class Avatar extends Drawing implements Runnable{
             case D: Dpressed = true; isMoving = true;break;
             case E: Epressed = true; isMoving = true;break;
             case SPACE: setCurrentLives(getCurrentLives()-1); break;
-            case R: if(getGun()!=null){gun.reload();};
+            case R: if(getGun()!=null){gun.reload();}; break;
+            case ESCAPE: if(gp.gameState == gp.pauseState){gp.gameState =gp.playState;}else if(gp.gameState == gp.playState){gp.gameState=gp.pauseState;}break;
         }
     }
 
@@ -236,6 +242,9 @@ public class Avatar extends Drawing implements Runnable{
             }
             if (Dpressed) {
                 pos.setX(pos.getX() + speed);
+            }
+            if(currentLives<=0){
+                gp.gameState = gp.gameOverState;
             }
         }
 
@@ -305,10 +314,11 @@ public class Avatar extends Drawing implements Runnable{
 
     public void pickGun(Gun gun){
         new Thread(gun).start();
+        gp.ui.showCurrentWeapon(gun.img);
         this.gun = gun;
         gun.pos = this.pos;
         gun.setHasPlayer(true);
-
+        gp.ui.showMessage("Has cogido un arma chaval", 120);
     }
 
 
