@@ -25,8 +25,8 @@ public class Stalker extends Enemy {
             idle[i-1] = new Image(uri);
         }
     }
-    public Stalker(Vector position, int health, Avatar avatar) {
-        super(position, health);
+    public Stalker(Vector position, int health, Avatar avatar, HelloController gp) {
+        super(position, health, gp);
         this.avatar = avatar;
         getStalkerImages();
     }
@@ -51,10 +51,12 @@ public class Stalker extends Enemy {
         if (avatar == null) {
             return false;
         }
-
+        double screenX = world.getX() - gp.avatar.world.getX() + gp.avatar.pos.getX();
+        double screenY = world.getY() - gp.avatar.world.getY() + gp.avatar.pos.getY(); ;
+        Vector scene = new Vector(screenX, screenY);
         double avatarX = avatar.pos.getX();
         double avatarY = avatar.pos.getY();
-        double distance = pos.distanceTo(new Vector(avatarX, avatarY));
+        double distance = scene.distanceTo(new Vector(avatarX, avatarY));
         return distance <= touchDistance;
     }
     private Thread damageThread = null;
@@ -89,10 +91,12 @@ public class Stalker extends Enemy {
         if (avatar == null) {
             return false;
         }
-
+        double screenX = world.getX() - gp.avatar.world.getX() + gp.avatar.pos.getX();
+        double screenY = world.getY() - gp.avatar.world.getY() + gp.avatar.pos.getY(); ;
+        Vector scene = new Vector(screenX, screenY);
         double avatarX = avatar.pos.getX(); // Obtener la posición x del avatar
         double avatarY = avatar.pos.getY(); // Obtener la posición y del avatar
-        double distance = pos.distanceTo(new Vector(avatarX, avatarY));
+        double distance = scene.distanceTo(new Vector(avatarX, avatarY));
         return distance <= followDistance;
     }
 
@@ -100,17 +104,21 @@ public class Stalker extends Enemy {
         if (avatar == null) {
             return;
         }
-
+        double screenX = world.getX() - gp.avatar.world.getX() + gp.avatar.pos.getX();
+        double screenY = world.getY() - gp.avatar.world.getY() + gp.avatar.pos.getY(); ;
+        Vector scene = new Vector(screenX, screenY);
         double avatarX = avatar.pos.getX(); // Obtener la posición x del avatar
         double avatarY = avatar.pos.getY(); // Obtener la posición y del avatar
-        Vector direction = new Vector(avatarX, avatarY).subtract(pos);
+        Vector direction = new Vector(avatarX, avatarY).subtract(scene);
         direction.normalize();
-        pos.setX(pos.getX() + direction.getX() * speed);
-        pos.setY(pos.getY() + direction.getY() * speed);
+        world.setX(world.getX() + direction.getX() * speed);
+        world.setY(world.getY() + direction.getY() * speed);
     }
 
     public void draw(GraphicsContext gc) {
-        gc.drawImage(idle[frame], pos.getX(), pos.getY(), 30, 30);
+        double screenX = world.getX() - gp.avatar.world.getX() + gp.avatar.pos.getX();
+        double screenY = world.getY() - gp.avatar.world.getY() + gp.avatar.pos.getY(); ;
+        gc.drawImage(idle[frame], screenX, screenY, 30, 30);
     }
 
     @Override

@@ -13,8 +13,8 @@ public class Guard extends Enemy {
     private double speed = 1.0; // Velocidad de movimiento del Guardia
     private ReproductorDeSonido reproductorDeSonido = new ReproductorDeSonido(System.getProperty("user.dir")+"/AnimacionIntro/src/main/resources/audio/disparo.wav");
 
-    public Guard(Vector position, int health, Vector patrolPoint1, Vector patrolPoint2, Avatar avatar, Level level) {
-        super(position, health);
+    public Guard(Vector position, int health, Vector patrolPoint1, Vector patrolPoint2, Avatar avatar, Level level, HelloController gp) {
+        super(position, health, gp);
         new Thread(reproductorDeSonido).start();
         this.patrolPoint1 = patrolPoint1;
         this.patrolPoint2 = patrolPoint2;
@@ -43,8 +43,8 @@ public class Guard extends Enemy {
         }
         patrol();
         double distanceToPlayer = Math.sqrt(
-                Math.pow(avatar.pos.getX() - pos.getX(), 2) +
-                        Math.pow(avatar.pos.getY() - pos.getY(), 2)
+                Math.pow(avatar.world.getX() - world.getX(), 2) +
+                        Math.pow(avatar.world.getY() - world.getY(), 2)
         );
 
         if (distanceToPlayer < 150) {
@@ -64,7 +64,9 @@ public class Guard extends Enemy {
         // Crear un nuevo hilo para generar las balas
         Thread shootThread = new Thread(() -> {
             // Generar una nueva bala y agregarla al nivel
-            Bullet bullet = new Bullet(pos.clone(), getDirectionToPlayer(), true);
+            double screenX = world.getX() - gp.avatar.world.getX() + gp.avatar.pos.getX();
+            double screenY = world.getY() - gp.avatar.world.getY() + gp.avatar.pos.getY(); ;
+            Bullet bullet = new Bullet(new Vector(screenX, screenY), getDirectionToPlayer(), true);
             level.getBullets().add(bullet);
             new Thread(reproductorDeSonido).start();
 
@@ -84,13 +86,15 @@ public class Guard extends Enemy {
 
     private Vector getDirectionToPlayer() {
         // Calcular la dirección hacia el jugador
-        double dx = avatar.pos.getX() - pos.getX();
-        double dy = avatar.pos.getY() - pos.getY();
+        double screenX = world.getX() - gp.avatar.world.getX() + gp.avatar.pos.getX();
+        double screenY = world.getY() - gp.avatar.world.getY() + gp.avatar.pos.getY(); ;
+        double dx =  avatar.pos.getX()- screenX;
+        double dy =   avatar.pos.getY()-screenY;
         return new Vector(dx, dy).normalize2();
     }
 
     private boolean shouldChangePatrolPoint() {
-        double distance = pos.distanceTo(currentPatrolPoint);
+        double distance = world.distanceTo(currentPatrolPoint);
         return distance <= 5; // Cambiar de punto de patrulla cuando se está cerca del punto actual
     }
 
@@ -106,10 +110,10 @@ public class Guard extends Enemy {
         if (isShooting) {
             return; // Si está disparando, no realizar movimientos
         }
-        Vector direction = currentPatrolPoint.subtract(pos);
+        Vector direction = currentPatrolPoint.subtract(world);
         direction.normalize();
-        pos.setX(pos.getX() + direction.getX() * getSpeed());
-        pos.setY(pos.getY() + direction.getY() * getSpeed());
+        world.setX(world.getX() + direction.getX() * getSpeed());
+        world.setY(world.getY() + direction.getY() * getSpeed());
     }
 
     public double getSpeed() {
@@ -121,7 +125,9 @@ public class Guard extends Enemy {
     }
 
     public void draw(GraphicsContext gc) {
-        gc.drawImage(idle[frame], pos.getX(), pos.getY(), 30, 30);
+        double screenX = world.getX() - gp.avatar.world.getX() + gp.avatar.pos.getX();
+        double screenY = world.getY() - gp.avatar.world.getY() + gp.avatar.pos.getY(); ;
+        gc.drawImage(idle[frame], screenX, screenY, 30, 30);
     }
 
     @Override

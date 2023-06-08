@@ -5,21 +5,31 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="54e88648-91b2-4c4a-8b8d-2d592bd4e113" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/uiDesigner.xml" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/TileManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Avatar.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Avatar.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/CollissionChecker.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/CollissionChecker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Drawing.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Drawing.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Enemy.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Enemy.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Guard.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Guard.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Gun.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Gun.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/HelloController.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/HelloController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Level.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Level.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Stalker.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Stalker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/UI.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/UI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Wall.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Wall.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/resources/com/example/animacionintro/hello-view.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/resources/com/example/animacionintro/hello-view.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -39,19 +49,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "C:/Users/aleji/APO-Worksapce/Nuclear-Gungeon",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/aleji/APO-Worksapce/Keyboard&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="HelloApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.example.animacionintro.HelloApplication" />
@@ -82,7 +92,10 @@
       <updated>1686230206764</updated>
       <workItem from="1686230209175" duration="1487000" />
       <workItem from="1686231889246" duration="423000" />
-      <workItem from="1686232330995" duration="878000" />
+      <workItem from="1686232330995" duration="1634000" />
+      <workItem from="1686233977812" duration="3303000" />
+      <workItem from="1686246776040" duration="9747000" />
+      <workItem from="1686258138112" duration="8145000" />
     </task>
     <servers />
   </component>

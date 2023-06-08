@@ -23,8 +23,12 @@ public class HelloController implements Initializable, Runnable {
 	public static final String LEVEL_ROUTE = MAIN_ROUTE + "src/main/resources/com/example/animacionintro/levels/";
 	@FXML
 	private Canvas canvas;
+
+	public TileManager tile = new TileManager(this);
 	final int originalTileSize = 16;
 	final int scale = 3;
+
+	public CollissionChecker cChecker = new CollissionChecker(this);
 
 	final int tileSize = originalTileSize * scale;
 	final int maxScreenCol = 16;
@@ -38,7 +42,11 @@ public class HelloController implements Initializable, Runnable {
 
 	Thread gameThread;
 
-	int momentum = 0;
+
+	public final int maxWorldCol = 30;
+	public final int maxWorldRow = 20;
+	public final int worldWidth = tileSize*maxWorldCol;
+	public final int worldHeight = tileSize*maxWorldRow;
 	public static ArrayList<Level> levels;
 
 	public static int currentLevel = 0;
@@ -62,7 +70,7 @@ public class HelloController implements Initializable, Runnable {
 		canvas.prefWidth(screenWidth);
 		gameThread = new Thread(this);
 		gc = canvas.getGraphicsContext2D();
-		canvas.setCursor(javafx.scene.Cursor.NONE);
+		//	canvas.setCursor(javafx.scene.Cursor.NONE);
 		canvas.setFocusTraversable(true);
 		canvas.setOnKeyPressed(this::onKeyPressed);
 		canvas.setOnKeyReleased(this::onKeyReleased);
@@ -77,17 +85,16 @@ public class HelloController implements Initializable, Runnable {
 		ui.showCurrentWeapon(new Image("file:" + HelloApplication.class.getResource("ui/punch.png").getPath()));
 		//Generar el primer mapa
 		Level l1 = new Level(0, LEVEL_ROUTE + "level_1.txt");
-		l1.setColor(Color.WHITE);
-		Stalker stalker1 = new Stalker(new Vector(400, 100), 2, avatar);
+		l1.setColor(Color.BLACK);
+		Stalker stalker1 = new Stalker(new Vector(400, 100), 2, avatar, this);
 		new Thread(stalker1).start();
 		l1.getEnemies().add(stalker1);
-
-
-		Stalker stalker2 = new Stalker(new Vector(400, 300), 2, avatar);
+		
+		Stalker stalker2 = new Stalker(new Vector(400, 300), 2, avatar, this);
 		new Thread(stalker2).start();
 		l1.getEnemies().add(stalker2);
 
-		Guard guard = new Guard(new Vector(200, 200), 3, new Vector(300, 200), new Vector(100, 400), avatar, l1);
+		Guard guard = new Guard(new Vector(200, 200), 3, new Vector(300, 200), new Vector(100, 400), avatar, l1, this);
 		new Thread(guard).start();
 		l1.getEnemies().add(guard);
 
@@ -99,7 +106,7 @@ public class HelloController implements Initializable, Runnable {
 		//Generar el segundo mapa
 		Level l2 = new Level(1, LEVEL_ROUTE + "level_1.txt");
 		l2.setColor(Color.GRAY);
-		l2.getEnemies().add(new Stalker(new Vector(100, 100),100, avatar));
+		/*l2.getEnemies().add(new Stalker(new Vector(100, 100),100, avatar));
 		l2.getEnemies().add(new Stalker(new Vector(100, 300),100, avatar));
 		l2.getEnemies().add(new Stalker(new Vector(300, 300),100, avatar));
 
@@ -110,7 +117,7 @@ public class HelloController implements Initializable, Runnable {
 		Guard guard2 = new Guard(new Vector(500, 400), 15, new Vector(600, 400), new Vector(400, 600),avatar, l2);
 		new Thread(guard2).start();
 		l2.getEnemies().add(guard2);
-
+*/
 		levels.add(l2);
 		gameThread.start();
 	}
@@ -133,6 +140,9 @@ public class HelloController implements Initializable, Runnable {
 			tempMouseY = e.getSceneY();
 		}
 	}
+	double cameraPosX = 0;
+	double cameraPosY = 0;
+
 
 	private void onMousePressed(MouseEvent e) {
 		avatar.onMousePressed(e);
@@ -150,9 +160,6 @@ public class HelloController implements Initializable, Runnable {
 	public static boolean isAlive = true;
 
 	private boolean rightClickPressed = false;
-
-
-
 
 
 	public void onKeyReleased(KeyEvent event) {
@@ -276,8 +283,8 @@ public class HelloController implements Initializable, Runnable {
 				for (int i = 0; i < level.getGuns().size(); i++) {
 					Gun gun = level.getGuns().get(i);
 					double distance = Math.sqrt(
-							Math.pow(gun.pos.getX() - avatar.pos.getX(), 2) +
-									Math.pow(gun.pos.getY() - avatar.pos.getY(), 2)
+							Math.pow(gun.world.getX() - avatar.world.getX(), 2) +
+									Math.pow(gun.world.getY() - avatar.world.getY(), 2)
 					);
 					if (distance < 40) {
 						if (avatar.Epressed) {
@@ -292,8 +299,8 @@ public class HelloController implements Initializable, Runnable {
 					Enemy ene = level.getEnemies().get(i);
 					ene.update();
 					double distance = Math.sqrt(
-							Math.pow(ene.pos.getX() - avatar.pos.getX(), 2) +
-									Math.pow(ene.pos.getY() - avatar.pos.getY(), 2)
+							Math.pow(ene.world.getX() - avatar.world.getX(), 2) +
+									Math.pow(ene.world.getY() - avatar.world.getY(), 2)
 					);
 					if (distance < 40) {
 						if (avatar.isAttacking()) {
@@ -306,9 +313,12 @@ public class HelloController implements Initializable, Runnable {
 					Bullet bn = level.getBullets().get(i);
 					for (int j = 0; j < level.getEnemies().size(); j++) {
 						Enemy en = level.getEnemies().get(j);
+						double screenX = en.world.getX() - avatar.world.getX() + avatar.pos.getX();
+						double screenY = en.world.getY() - avatar.world.getY() + avatar.pos.getY();
 						double distance = Math.sqrt(
-								Math.pow(en.pos.getX() - bn.pos.getX(), 2) +
-										Math.pow(en.pos.getY() - bn.pos.getY(), 2)
+
+								Math.pow(screenX - bn.pos.getX(), 2) +
+										Math.pow(screenY - bn.pos.getY(), 2)
 						);
 						if (distance < 30 && !level.getBullets().get(i).enemy) {
 							level.getBullets().remove(i);
@@ -372,13 +382,15 @@ public class HelloController implements Initializable, Runnable {
 	}
 
 	public void repaint() {
+
 		if (gameState == playState) {
 			Level level = levels.get(currentLevel);
+
 			gc.setFill(level.getColor());
 			gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-
-			level.paint(gc);
-
+			double mapPosX = avatar.world.getX() - (600.0 / 2) + cameraPosX; // Ajusta el mapa al centro del jugador en X
+			double mapPosY = avatar.world.getY() - (400.0 / 2)+ cameraPosY;
+			tile.draw(gc);
 			Gun gun = avatar.getGun();
 			if (gun != null) {
 				if (gun.isFront()) {
@@ -404,6 +416,7 @@ public class HelloController implements Initializable, Runnable {
 			for (int i = 0; i < level.getGuns().size(); i++) {
 				level.getGuns().get(i).draw(gc);
 			}
+
 			ui.draw(gc);
 		}
 		if(gameState==gameOverState){

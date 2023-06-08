@@ -11,10 +11,17 @@ public abstract class Enemy extends Drawing implements Runnable {
     protected int health;
     protected Level level;
 
+    public Level getLevel() {
+        return level;
+    }
+
+    HelloController gp;
+
     protected boolean isAlive = true;
 
-    public Enemy(Vector position, int health) {
-        this.pos= position;
+    public Enemy(Vector position, int health, HelloController gp) {
+        this.world= position;
+        this.gp = gp;
         this.health = health;
     }
 

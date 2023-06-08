@@ -4,23 +4,15 @@ import javafx.scene.image.Image;
 
 public class Wall {
 	private final Image image;
-	private final int col, row;
 
-	public Wall(Image image, int col, int row) {
+	public boolean collission;
+
+	public Wall(Image image, boolean collission) {
 		this.image = image;
-		this.col = col;
-		this.row = row;
+		this.collission = collission;
 	}
 
 	public Image getImage() {
 		return image;
-	}
-
-	public int getCol() {
-		return col;
-	}
-
-	public int getRow() {
-		return row;
 	}
 }

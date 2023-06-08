@@ -68,6 +68,7 @@ public class Gun extends Drawing implements Runnable{
         IMAGE_WIDTH = img.getWidth();
         IMAGE_HEIGHT = img.getHeight();
         this.img = img;
+        world = new Vector(pos.getX(), pos.getY());
         this.reloadTime = reloadTime;
         this.bulletQuantity = bulletQuantity;
         this.bulletSize = bulletQuantity;
@@ -150,7 +151,9 @@ public class Gun extends Drawing implements Runnable{
                 gc.drawImage(img, IMAGE_WIDTH / 6, IMAGE_HEIGHT / 6, -IMAGE_WIDTH / 6, -IMAGE_HEIGHT / 6);
                 gc.restore();
             } else {
-                gc.drawImage(img, pos.getX(), pos.getY(), IMAGE_WIDTH / 6, IMAGE_HEIGHT / 6);
+                double screenX = world.getX() - gp.avatar.world.getX() + gp.avatar.pos.getX();
+                double screenY = world.getY() - gp.avatar.world.getY() + gp.avatar.pos.getY(); ;
+                gc.drawImage(img, screenX, screenY, IMAGE_WIDTH / 6, IMAGE_HEIGHT / 6);
             }
         }
     }

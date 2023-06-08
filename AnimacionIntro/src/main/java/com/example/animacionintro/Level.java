@@ -42,12 +42,6 @@ public class Level {
 		guns = new ArrayList<>();
 		enemies = new ArrayList<>();
 		bullets = new ArrayList<>();
-		try {
-			levelDistribution = loadMatrixFromFile(levelMatrixPath);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		createMapWalls();
 	}
 
 	public static int[][] loadMatrixFromFile(String filePath) throws FileNotFoundException {
@@ -76,29 +70,8 @@ public class Level {
 		return matrix;
 	}
 
-	public void createMapWalls() {
-		mapElements = new ArrayList<>();
-		for (int row = 0; row < levelDistribution.length; row++) {
-			for (int col = 0; col < levelDistribution[0].length; col++) {
-				if (levelDistribution[row][col] == 1) {
-					mapElements.add(new Wall(new Image(HelloController.MAIN_ROUTE + "src/main/resources/com/example/animacionintro/wall/wall.png"), col, row));
-					// gc.drawImage(wallImage, col * cellWidth, row * cellHeight, cellWidth, cellHeight);
-				}
-			}
-		}
-	}
 
-	public void paint(GraphicsContext gc) {
-		double cellWidth = gc.getCanvas().getWidth() / levelDistribution[0].length;
-		double cellHeight = gc.getCanvas().getHeight() / levelDistribution.length;
-		for (Wall wall : mapElements) {
-			double x = wall.getCol() * cellWidth;
-			double y = wall.getRow() * cellHeight;
 
-			gc.drawImage(wall.getImage(), x, y, cellWidth, cellHeight);
-
-		}
-	}
 
 	public boolean hasCollision(int row, int col) {
 		if (row >= 0 && row < levelDistribution.length && col >= 0 && col < levelDistribution[0].length)

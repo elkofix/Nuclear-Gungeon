@@ -12,6 +12,8 @@ public abstract class Drawing {
 
     protected Vector world;
 
+    public boolean collisionOn = false;
+
     protected String direction = "";
 
     protected Colission solidArea;
