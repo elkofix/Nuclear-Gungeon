@@ -1,290 +1,262 @@
 package com.example.animacionintro;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.application.Platform;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.util.Duration;
 
-import javax.sound.sampled.*;
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class HelloController implements Initializable, Runnable {
+	public static final String MAIN_ROUTE = System.getProperty("user.dir") + "/AnimacionIntro/";
+	public static final String LEVEL_ROUTE = MAIN_ROUTE + "src/main/resources/com/example/animacionintro/levels/";
+	@FXML
+	private Canvas canvas;
+	final int originalTileSize = 16;
+	final int scale = 3;
+
+	final int tileSize = originalTileSize * scale;
+	final int maxScreenCol = 16;
+	final int maxScreenRow = 12;
+	final int screenWidth = tileSize * maxScreenCol;
+	final int screenHeight = tileSize * maxScreenRow;
+
+	int FPS = 60;
+	private GraphicsContext gc;
+
+	Thread gameThread;
+
+	int momentum = 0;
+	public static ArrayList<Level> levels;
+
+	public static int currentLevel = 0;
+
+	private double tempMouseX, tempMouseY;
+
+	@Override
+	public void initialize(URL url, ResourceBundle resourceBundle) {
+		canvas.prefHeight(screenHeight);
+		canvas.prefWidth(screenWidth);
+		gameThread = new Thread(this);
+
+		gc = canvas.getGraphicsContext2D();
+		canvas.setCursor(javafx.scene.Cursor.NONE);
+		canvas.setFocusTraversable(true);
+		canvas.setOnKeyPressed(this::onKeyPressed);
+		canvas.setOnKeyReleased(this::onKeyReleased);
+		canvas.setOnMousePressed(this::onMousePressed);
+		canvas.setOnMouseMoved(this::onMouseMoved);
+		canvas.setOnMouseReleased(this::onMouseReleased);
+		avatar = new Avatar();
+		Gun gun = new Gun(new Vector(100, 200), 8, new Image("file:" + HelloApplication.class.getResource("gun/gun.png").getPath()), 2, 300, 1);
+		new Thread(avatar).start(); //Esto ejecuta el código dentro de run() en paralelo
+		levels = new ArrayList<>();
+
+		//Generar el primer mapa
+		Level l1 = new Level(0, LEVEL_ROUTE + "level_1.txt");
+		l1.setColor(Color.WHITE);
+		Enemy e = new Enemy(new Vector(400, 100));
+		new Thread(e).start();
+		l1.getEnemies().add(e);
+		l1.getEnemies().add(new Enemy(new Vector(400, 300)));
+		l1.getGuns().add(gun);
+		l1.getGuns().add(new Gun(new Vector(200, 200), 2, new Image("file:" + HelloApplication.class.getResource("gun/shotgun.png").getPath()), 2, 1000, 4));
+		levels.add(l1);
+		//Generar el segundo mapa
+		Level l2 = new Level(1, LEVEL_ROUTE + "level_1.txt");
+		l2.setColor(Color.GRAY);
+		l2.getEnemies().add(new Enemy(new Vector(100, 100)));
+		l2.getEnemies().add(new Enemy(new Vector(100, 300)));
+		l2.getEnemies().add(new Enemy(new Vector(300, 300)));
+		levels.add(l2);
+		gameThread.start();
+	}
+
+	private void onMouseMoved(MouseEvent e) {
+		double relativePosition = e.getX() - avatar.pos.getX();
+		avatar.setFacingRight(
+				relativePosition > 0
+		);
 
 
-    @FXML
-    private Canvas canvas;
-    final int originalTileSize = 16;
-    final int scale = 3;
-    final int tileSize = originalTileSize * scale;
-    final int maxScreenCol = 16;
-    final int maxScreenRow = 12;
+		if (avatar.getGun() != null) {
+			tempMouseX = e.getSceneX();
+			tempMouseY = e.getSceneY();
+			avatar.getGun().setSceneY(e.getSceneY());
+			avatar.getGun().setSceneX(e.getSceneX());
+			avatar.getGun().setFront(avatar.pos.getY() > e.getSceneY());
+		} else {
+			tempMouseX = e.getSceneX();
+			tempMouseY = e.getSceneY();
+		}
+	}
 
-    public Avatar avatar;
-    final int screenWidth = tileSize * maxScreenCol;
-    final int screenHeight = tileSize * maxScreenRow;
+	private void onMousePressed(MouseEvent e) {
+		avatar.onMousePressed(e);
+	}
 
-    int FPS = 60;
+	double dirX;
+	double dirY;
 
-    public CollissionChecker cChecker =  new CollissionChecker(this);
-    private GraphicsContext gc;
+	private void onMouseReleased(MouseEvent e) {
+		if (!e.isSecondaryButtonDown()) {
+			rightClickPressed = false;
+		}
+	}
 
-    Thread gameThread;
-    public static ArrayList<Level> levels;
+	private boolean isAlive = true;
 
-    public static int currentLevel = 0;
-
-    private double tempMouseX, tempMouseY;
-
-    public int gameState;
-    public final int playState = 1;
-    public final int gameOverState = 2;
-    public final int pauseState = 3;
-
-    public UI ui = new UI(this);
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        canvas.prefHeight(screenHeight);
-        canvas.prefWidth(screenWidth);
-        gameThread = new Thread(this);
-        gameState = playState;
-        gc = canvas.getGraphicsContext2D();
-        canvas.setCursor(javafx.scene.Cursor.NONE);
-        canvas.setFocusTraversable(true);
-        canvas.setOnKeyPressed(this::onKeyPressed);
-        canvas.setOnKeyReleased(this::onKeyReleased);
-        canvas.setOnMousePressed(this::onMousePressed);
-        canvas.setOnMouseMoved(this::onMouseMoved);
-        canvas.setOnMouseReleased(this::onMouseReleased);
-        this.avatar = new Avatar(this);
-        Gun gun = new Gun(new Vector(100, 200), 8, new Image("file:" + HelloApplication.class.getResource("gun/gun.png").getPath()), 2, 300,1);
-        new Thread(avatar).start(); //Esto ejecuta el código dentro de run() en paralelo
-        levels = new ArrayList<>();
-
-        //Generar el primer mapa
-        Level l1 = new Level(0);
-        l1.setColor(Color.WHITE);
-        Enemy e = new Enemy(new Vector(400, 100));
-        new Thread(e).start();
-        l1.getEnemies().add(e);
-        l1.getEnemies().add(new Enemy(new Vector(400, 300)));
-        l1.getGuns().add(gun);
-        l1.getGuns().add(new Gun(new Vector(200, 200), 2, new Image("file:" + HelloApplication.class.getResource("gun/shotgun.png").getPath()), 2, 1000, 4));
-        levels.add(l1);
-        //Generar el segundo mapa
-        Level l2 = new Level(1);
-        l2.setColor(Color.GRAY);
-        l2.getEnemies().add(new Enemy(new Vector(100, 100)));
-        l2.getEnemies().add(new Enemy(new Vector(100, 300)));
-        l2.getEnemies().add(new Enemy(new Vector(300, 300)));
-        levels.add(l2);
-        ui.showCurrentWeapon(new Image("file:" + HelloApplication.class.getResource("ui/punch.png").getPath()));
-        gameThread.start();
-    }
+	private boolean rightClickPressed = false;
 
 
-    private void onMouseMoved(MouseEvent e) {
-        double relativePosition = e.getX()-avatar.pos.getX();
-        avatar.setFacingRight(
-                relativePosition > 0
-        );
+	private Avatar avatar;
 
 
-        if(avatar.getGun()!=null){
-            tempMouseX = e.getSceneX();
-            tempMouseY = e.getSceneY();
-            avatar.getGun().setSceneY(e.getSceneY());
-            avatar.getGun().setSceneX(e.getSceneX());
-            avatar.getGun().setFront(avatar.pos.getY()>e.getSceneY());
-        }else{
-            tempMouseX = e.getSceneX();
-            tempMouseY = e.getSceneY();
-        }
-    }
+	public void onKeyReleased(KeyEvent event) {
+		avatar.onKeyReleased(event);
+	}
 
-    private void onMousePressed(MouseEvent e) {
-        avatar.onMousePressed(e);
-    }
-    double dirX;
-    double dirY;
-    private void onMouseReleased(MouseEvent e){
-        if(!e.isSecondaryButtonDown()){
-            rightClickPressed = false;
-        }
-    }
-
-    private boolean isAlive = true;
-
-    private boolean rightClickPressed = false;
+	public void onKeyPressed(KeyEvent event) {
+		System.out.println(event.getCode());
+		avatar.onKeyPressed(event);
+	}
 
 
+	public boolean isOutside(double x, double y) {
+		return x < -10 || y < -10 || x > canvas.getWidth() || y > canvas.getHeight();
+	}
 
 
-    public void onKeyReleased(KeyEvent event){
-        avatar.onKeyReleased(event);
-    }
-    public void onKeyPressed(KeyEvent event){
-        System.out.println(event.getCode());
-        avatar.onKeyPressed(event);
-    }
+	@Override
+	public void run() {
+		double drawInterval = 1000000000.0 / FPS;
+		double nextDrawTime = System.nanoTime() + drawInterval;
+		while (gameThread != null) {
+			//Dibujar en el lienzo
+			update();
+			repaint();
+			try {
+				double remainingTime = nextDrawTime - System.nanoTime();
+				remainingTime /= 1000000;
+				if (remainingTime < 0) {
+					remainingTime = 0;
+				}
+				Thread.sleep((long) remainingTime);
+				nextDrawTime += drawInterval;
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 
+			}
+		}
+	}
 
+	public void update() {
+		Level level = levels.get(currentLevel);
+		if (avatar.pos.getX() < 25) {
+			avatar.pos.setX(25);
+		}
+		if (avatar.pos.getY() > canvas.getHeight() - 25) {
+			avatar.pos.setY(canvas.getHeight() - 25);
+		}
+		if (avatar.pos.getY() < 0) {
+			currentLevel = 1;
+			avatar.pos.setY(canvas.getHeight());
+		}
 
-    public boolean isOutside(double x, double y){
-        return x<-10 || y<-10 || x>canvas.getWidth() || y>canvas.getHeight();
-    }
+		//Colisiones
+		for (int i = 0; i < level.getGuns().size(); i++) {
+			Gun gun = level.getGuns().get(i);
+			double distance = Math.sqrt(
+					Math.pow(gun.pos.getX() - avatar.pos.getX(), 2) +
+							Math.pow(gun.pos.getY() - avatar.pos.getY(), 2)
+			);
+			if (distance < 40) {
+				if (avatar.Epressed) {
+					gun.setSceneX(tempMouseX);
+					gun.setSceneY(tempMouseY);
+					avatar.pickGun(gun);
+					level.getGuns().remove(i);
 
+				}
 
-    @Override
-    public void run() {
-        double drawInterval =1000000000.0/FPS;
-        double nextDrawTime = System.nanoTime() + drawInterval;
-        while (gameThread!=null){
-                //Dibujar en el lienzo
-                update();
-                repaint();
-            try {
-                double remainingTime = nextDrawTime - System.nanoTime();
-                remainingTime /= 1000000;
-                if(remainingTime<0){
-                    remainingTime = 0;
-                }
-                Thread.sleep((long) remainingTime);
-                nextDrawTime += drawInterval;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+			}
+		}
 
-            }
-        }
-    }
+		for (int i = 0; i < level.getEnemies().size(); i++) {
+			Enemy ene = level.getEnemies().get(i);
+			double distance = Math.sqrt(
+					Math.pow(ene.pos.getX() - avatar.pos.getX(), 2) +
+							Math.pow(ene.pos.getY() - avatar.pos.getY(), 2)
+			);
+			if (distance < 40) {
+				if (avatar.isAttacking()) {
+					;
+					level.getEnemies().remove(i);
 
-    public void update(){
-        if(gameState==playState) {
-            Level level = levels.get(currentLevel);
-            if (avatar.pos.getX() < 25) {
-                avatar.pos.setX(25);
-                avatar.solidArea.solidArea.setX(15);
+				}
 
-            }
-            if (avatar.pos.getY() > canvas.getHeight() - 25) {
-                avatar.pos.setY(canvas.getHeight() - 25);
-                avatar.solidArea.solidArea.setY(canvas.getHeight() - 25);
-            }
-            if (avatar.pos.getY() < 0) {
-                currentLevel = 1;
-                avatar.pos.setY(canvas.getHeight());
-                avatar.solidArea.solidArea.setY(canvas.getHeight());
-            }
+			}
+		}
 
-            //Colisiones
-            for (int i = 0; i < level.getGuns().size(); i++) {
-                Gun gun = level.getGuns().get(i);
-                double distance = Math.sqrt(
-                        Math.pow(gun.pos.getX() - avatar.pos.getX(), 2) +
-                                Math.pow(gun.pos.getY() - avatar.pos.getY(), 2)
-                );
-                if (distance < 40) {
-                    if (avatar.Epressed) {
-                        gun.setSceneX(tempMouseX);
-                        gun.setSceneY(tempMouseY);
-                        avatar.pickGun(gun);
-                        level.getGuns().remove(i);
-                        ui.showMessage("Cogiste un arma chaval", 120);
-                    }
+		for (int i = 0; i < level.getBullets().size(); i++) {
+			Bullet bn = level.getBullets().get(i);
+			for (int j = 0; j < level.getEnemies().size(); j++) {
+				Enemy en = level.getEnemies().get(j);
 
-                }
-            }
+				double distance = Math.sqrt(
+						Math.pow(en.pos.getX() - bn.pos.getX(), 2) +
+								Math.pow(en.pos.getY() - bn.pos.getY(), 2)
+				);
 
-            for (int i = 0; i < level.getEnemies().size(); i++) {
-                Enemy ene = level.getEnemies().get(i);
-                double distance = Math.sqrt(
-                        Math.pow(ene.pos.getX() - avatar.pos.getX(), 2) +
-                                Math.pow(ene.pos.getY() - avatar.pos.getY(), 2)
-                );
-                if (distance < 40) {
-                    if (avatar.isAttacking()) {
-                        level.getEnemies().remove(i);
+				if (distance < 15) {
+					level.getBullets().remove(i);
+					level.getEnemies().remove(j);
+				}
 
-                    }
+			}
+		}
+		avatar.update();
+	}
 
-                }
-            }
+	public void repaint() {
+		Level level = levels.get(currentLevel);
+		gc.setFill(level.getColor());
+		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-            for (int i = 0; i < level.getBullets().size(); i++) {
-                Bullet bn = level.getBullets().get(i);
-                for (int j = 0; j < level.getEnemies().size(); j++) {
-                    Enemy en = level.getEnemies().get(j);
+		level.paint(gc);
 
-                    double distance = Math.sqrt(
-                            Math.pow(en.pos.getX() - bn.pos.getX(), 2) +
-                                    Math.pow(en.pos.getY() - bn.pos.getY(), 2)
-                    );
+		Gun gun = avatar.getGun();
+		if (gun != null) {
+			if (gun.isFront()) {
+				gun.draw(gc);
+				avatar.draw(gc);
+			} else {
+				avatar.draw(gc);
+				gun.draw(gc);
+			}
+		} else {
+			avatar.draw(gc);
+		}
 
-                    if (distance < 15) {
-                        level.getBullets().remove(i);
-                        level.getEnemies().remove(j);
-                    }
-
-                }
-            }
-            avatar.update();
-        }
-
-        if(gameState==pauseState){
-            //nuh uh
-        }
-    }
-
-    public void repaint(){
-        Level level = levels.get(currentLevel);
-        gc.setFill(level.getColor());
-        gc.fillRect(0,0, canvas.getWidth(), canvas.getHeight());
-
-        Gun gun = avatar.getGun();
-        if(gun!=null){
-            if(gun.isFront()){
-                gun.draw(gc);
-                avatar.draw(gc);
-            }else{
-                avatar.draw(gc);
-                gun.draw(gc);
-            }
-        }else {
-            avatar.draw(gc);
-        }
-
-        for(int i=0 ; i<level.getBullets().size() ; i++){
-            level.getBullets().get(i).draw(gc);
-            if(isOutside(level.getBullets().get(i).pos.getX(), level.getBullets().get(i).pos.getY())){
-                level.getBullets().remove(i);
-            }
-        }
-        for(int i=0 ; i<level.getEnemies().size() ; i++){
-            level.getEnemies().get(i).draw(gc);
-        }
-        for(int i=0 ; i<level.getGuns().size() ; i++){
-            level.getGuns().get(i).draw(gc);
-        }
-        ui.draw(gc);
-    }
+		for (int i = 0; i < level.getBullets().size(); i++) {
+			level.getBullets().get(i).draw(gc);
+			if (isOutside(level.getBullets().get(i).pos.getX(), level.getBullets().get(i).pos.getY())) {
+				level.getBullets().remove(i);
+			}
+		}
+		for (int i = 0; i < level.getEnemies().size(); i++) {
+			level.getEnemies().get(i).draw(gc);
+		}
+		for (int i = 0; i < level.getGuns().size(); i++) {
+			level.getGuns().get(i).draw(gc);
+		}
+	}
 }
 
 

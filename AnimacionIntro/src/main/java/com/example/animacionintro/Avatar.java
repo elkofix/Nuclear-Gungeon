@@ -7,8 +7,10 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
+import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +29,8 @@ public class Avatar extends Drawing implements Runnable{
     }
 
     private ReproductorDeSonido reproductorDeSonido = new ReproductorDeSonido(System.getProperty("user.dir")+"/AnimacionIntro/src/main/resources/audio/disparo.wav");
-    ;
+
+
     public int getCurrentLives() {
         return currentLives;
     }
@@ -110,17 +113,15 @@ public class Avatar extends Drawing implements Runnable{
 
     private boolean rightClickPressed = false;
     public boolean Epressed = false;
-    HelloController gp;
 
-    public Avatar(HelloController gc){
+    Image heart = new Image("file:" + HelloApplication.class.getResource("players/dandy/heart/heart1.png").getPath());
+    Image empty = new Image("file:" + HelloApplication.class.getResource("players/dandy/heart/heart0.png").getPath());
+    public Avatar(){
         lives = 8;
-        this.gp = gc;
         new Thread(reproductorDeSonido).start();
         pos.setY(100);
         pos.setX(100);
-        world = pos;
         speed = 3;
-        solidArea = new Colission(new Vector(pos.getX()-10, pos.getY()), 20, 20);
         currentLives = lives;
         executorService.shutdown();
         getPlayerImages();
@@ -185,7 +186,6 @@ public class Avatar extends Drawing implements Runnable{
                 }else{
                     if(!getGun().isReloading()){
                         getGun().reload();
-                        gp.ui.showMessage("Recargando...", gun.reloadTime*60);
                     }
                 }
             }else{
@@ -219,48 +219,24 @@ public class Avatar extends Drawing implements Runnable{
             case D: Dpressed = true; isMoving = true;break;
             case E: Epressed = true; isMoving = true;break;
             case SPACE: setCurrentLives(getCurrentLives()-1); break;
-            case R: if(getGun()!=null){gun.reload();}; break;
-
-            case ESCAPE: if(gp.gameState==gp.playState){gp.gameState = gp.pauseState;} else if (gp.gameState==gp.pauseState) {gp.gameState=gp.playState;}
+            case R: if(getGun()!=null){gun.reload();};
         }
     }
-
 
     public void update(){
         if(!isRolling() && !isLock()) {
             if (Wpressed) {
-                direction = "up";
+                pos.setY(pos.getY() - speed);
             }
             if (Apressed) {
-                direction = "left";
+                pos.setX(pos.getX() - speed);
             }
             if (Spressed) {
-                direction = "down";
+                pos.setY(pos.getY() + speed);
             }
             if (Dpressed) {
-                direction = "right";
+                pos.setX(pos.getX() + speed);
             }
-            collissionOn = false;
-            gp.cChecker.checkTile(this);
-            if(!collissionOn){
-                if (Wpressed) {
-                    pos.setY(pos.getY() - speed);
-                    solidArea.solidArea.setY(solidArea.solidArea.getY() - speed);
-                }
-                if (Apressed) {
-                    pos.setX(pos.getX() - speed);
-                    solidArea.solidArea.setX(solidArea.solidArea.getX() - speed);
-                }
-                if (Spressed) {
-                    pos.setY(pos.getY() + speed);
-                    solidArea.solidArea.setY(solidArea.solidArea.getY() + speed);
-                }
-                if (Dpressed) {
-                    pos.setX(pos.getX() + speed);
-                    solidArea.solidArea.setX(solidArea.solidArea.getX() + speed);
-                }
-            }
-
         }
 
         if(rightClickPressed){
@@ -284,9 +260,6 @@ public class Avatar extends Drawing implements Runnable{
                 timeline.play();
             }
         }
-        if(currentLives<=0){
-            gp.gameState = gp.gameOverState;
-        }
     }
 
     public void lock(){
@@ -306,13 +279,28 @@ public class Avatar extends Drawing implements Runnable{
     @Override
     public void draw(GraphicsContext gc) {
         setMoving(Wpressed || Spressed || Dpressed || Apressed);
-
         gc.drawImage(isRolling ? roll[frame] : (isAttacking ? hit[frame] : (isMoving ? run[frame] : idle[frame])),
                 isFacingRight?pos.getX()-25:pos.getX()+25,
                 pos.getY()-25,
                 isFacingRight?50:-50,
                 50);
-        gc.fillRect(solidArea.solidArea.getX(), solidArea.solidArea.getY(), solidArea.width, solidArea.height);
+        double width=0;
+        for (int i = 0; i < currentLives; i++) {
+            gc.drawImage(heart, width, 0, 30,30);
+            width+=30;
+        }
+        int rest = lives-currentLives;
+        if(rest<=lives){
+            for (int i = 0; i < lives-currentLives; i++) {
+                gc.drawImage(empty, width, 0, 30,30);
+                width+=30;
+            }
+        }else{
+            for (int i = 0; i < lives; i++) {
+                gc.drawImage(empty, width, 0, 30,30);
+                width+=30;
+            }
+        }
     }
 
     public void pickGun(Gun gun){
@@ -320,7 +308,7 @@ public class Avatar extends Drawing implements Runnable{
         this.gun = gun;
         gun.pos = this.pos;
         gun.setHasPlayer(true);
-        gp.ui.showCurrentWeapon(gun.img);
+
     }
 
 
@@ -329,43 +317,31 @@ public class Avatar extends Drawing implements Runnable{
         double dx = 1;
         if(Wpressed && !Apressed && !Dpressed && !Spressed){
             pos.setY(pos.getY() - d);
-            solidArea.solidArea.setY(solidArea.solidArea.getY()-d);
         }
         if(!Wpressed && !Apressed && Dpressed && !Spressed){
             pos.setX(pos.getX() + d);
-            solidArea.solidArea.setX(solidArea.solidArea.getX()+d);
         }
         if(!Wpressed && Apressed && !Dpressed && !Spressed){
             pos.setX(pos.getX() - d);
-            solidArea.solidArea.setX(solidArea.solidArea.getX()-d);
         }
         if(!Wpressed && !Apressed && !Dpressed && Spressed){
             pos.setY(pos.getY() + d);
-            solidArea.solidArea.setY(solidArea.solidArea.getY()+d);
         }
         if(Wpressed && Apressed && !Dpressed && !Spressed){
             pos.setY(pos.getY() - dx);
             pos.setX(pos.getX() - dx);
-            solidArea.solidArea.setY(solidArea.solidArea.getY()-dx);
-            solidArea.solidArea.setX(solidArea.solidArea.getX()-dx);
         }
         if(Wpressed && !Apressed && Dpressed && !Spressed){
             pos.setY(pos.getY() - dx);
             pos.setX(pos.getX() + dx);
-            solidArea.solidArea.setY(solidArea.solidArea.getY()-dx);
-            solidArea.solidArea.setX(solidArea.solidArea.getX()+dx);
         }
         if(!Wpressed && !Apressed && Dpressed && Spressed){
             pos.setY(pos.getY() + dx);
             pos.setX(pos.getX() + dx);
-            solidArea.solidArea.setY(solidArea.solidArea.getY()+dx);
-            solidArea.solidArea.setX(solidArea.solidArea.getX()+dx);
         }
         if(!Wpressed && Apressed && !Dpressed && Spressed){
             pos.setY(pos.getY() + dx);
             pos.setX(pos.getX() - dx);
-            solidArea.solidArea.setY(solidArea.solidArea.getY()+dx);
-            solidArea.solidArea.setX(solidArea.solidArea.getX()-dx);
         }
 
 
