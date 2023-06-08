@@ -34,31 +34,38 @@ public class HelloController implements Initializable, Runnable {
     private Canvas canvas;
     final int originalTileSize = 16;
     final int scale = 3;
-
     final int tileSize = originalTileSize * scale;
     final int maxScreenCol = 16;
     final int maxScreenRow = 12;
+
+    public Avatar avatar;
     final int screenWidth = tileSize * maxScreenCol;
     final int screenHeight = tileSize * maxScreenRow;
 
     int FPS = 60;
+
+    public CollissionChecker cChecker =  new CollissionChecker(this);
     private GraphicsContext gc;
 
     Thread gameThread;
-
-    int momentum = 0;
     public static ArrayList<Level> levels;
 
     public static int currentLevel = 0;
 
     private double tempMouseX, tempMouseY;
 
+    public int gameState;
+    public final int playState = 1;
+    public final int gameOverState = 2;
+    public final int pauseState = 3;
+
+    public UI ui = new UI(this);
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         canvas.prefHeight(screenHeight);
         canvas.prefWidth(screenWidth);
         gameThread = new Thread(this);
-
+        gameState = playState;
         gc = canvas.getGraphicsContext2D();
         canvas.setCursor(javafx.scene.Cursor.NONE);
         canvas.setFocusTraversable(true);
@@ -67,7 +74,7 @@ public class HelloController implements Initializable, Runnable {
         canvas.setOnMousePressed(this::onMousePressed);
         canvas.setOnMouseMoved(this::onMouseMoved);
         canvas.setOnMouseReleased(this::onMouseReleased);
-        avatar = new Avatar();
+        this.avatar = new Avatar(this);
         Gun gun = new Gun(new Vector(100, 200), 8, new Image("file:" + HelloApplication.class.getResource("gun/gun.png").getPath()), 2, 300,1);
         new Thread(avatar).start(); //Esto ejecuta el código dentro de run() en paralelo
         levels = new ArrayList<>();
@@ -89,8 +96,11 @@ public class HelloController implements Initializable, Runnable {
         l2.getEnemies().add(new Enemy(new Vector(100, 300)));
         l2.getEnemies().add(new Enemy(new Vector(300, 300)));
         levels.add(l2);
+        ui.showCurrentWeapon(new Image("file:" + HelloApplication.class.getResource("ui/punch.png").getPath()));
         gameThread.start();
     }
+
+
     private void onMouseMoved(MouseEvent e) {
         double relativePosition = e.getX()-avatar.pos.getX();
         avatar.setFacingRight(
@@ -125,8 +135,6 @@ public class HelloController implements Initializable, Runnable {
 
     private boolean rightClickPressed = false;
 
-
-    private Avatar avatar;
 
 
 
@@ -169,70 +177,80 @@ public class HelloController implements Initializable, Runnable {
     }
 
     public void update(){
-        Level level = levels.get(currentLevel);
-        if(avatar.pos.getX() < 25){
-            avatar.pos.setX(25);
-        }
-        if(avatar.pos.getY() > canvas.getHeight() - 25){
-            avatar.pos.setY( canvas.getHeight() -25 );
-        }
-        if(avatar.pos.getY() < 0){
-            currentLevel = 1;
-            avatar.pos.setY(canvas.getHeight());
-        }
-
-        //Colisiones
-        for (int i = 0; i < level.getGuns().size(); i++) {
-            Gun gun = level.getGuns().get(i);
-            double distance = Math.sqrt(
-                    Math.pow(gun.pos.getX()-avatar.pos.getX(), 2) +
-                            Math.pow(gun.pos.getY()-avatar.pos.getY(), 2)
-            );
-            if(distance < 40){
-                if(avatar.Epressed){
-                    gun.setSceneX(tempMouseX);
-                    gun.setSceneY(tempMouseY);
-                    avatar.pickGun(gun);
-                    level.getGuns().remove(i);
-
-                }
+        if(gameState==playState) {
+            Level level = levels.get(currentLevel);
+            if (avatar.pos.getX() < 25) {
+                avatar.pos.setX(25);
+                avatar.solidArea.solidArea.setX(15);
 
             }
-        }
-
-        for (int i = 0; i < level.getEnemies().size(); i++) {
-            Enemy ene = level.getEnemies().get(i);
-            double distance = Math.sqrt(
-                    Math.pow(ene.pos.getX()-avatar.pos.getX(), 2) +
-                            Math.pow(ene.pos.getY()-avatar.pos.getY(), 2)
-            );
-            if(distance < 40){
-                if(avatar.isAttacking()){;
-                    level.getEnemies().remove(i);
-
-                }
-
+            if (avatar.pos.getY() > canvas.getHeight() - 25) {
+                avatar.pos.setY(canvas.getHeight() - 25);
+                avatar.solidArea.solidArea.setY(canvas.getHeight() - 25);
             }
-        }
+            if (avatar.pos.getY() < 0) {
+                currentLevel = 1;
+                avatar.pos.setY(canvas.getHeight());
+                avatar.solidArea.solidArea.setY(canvas.getHeight());
+            }
 
-        for(int i=0 ; i<level.getBullets().size() ; i++){
-            Bullet bn = level.getBullets().get(i);
-            for(int j=0 ; j<level.getEnemies().size() ; j++){
-                Enemy en = level.getEnemies().get(j);
-
+            //Colisiones
+            for (int i = 0; i < level.getGuns().size(); i++) {
+                Gun gun = level.getGuns().get(i);
                 double distance = Math.sqrt(
-                        Math.pow(en.pos.getX()-bn.pos.getX(), 2) +
-                                Math.pow(en.pos.getY()-bn.pos.getY(), 2)
+                        Math.pow(gun.pos.getX() - avatar.pos.getX(), 2) +
+                                Math.pow(gun.pos.getY() - avatar.pos.getY(), 2)
                 );
+                if (distance < 40) {
+                    if (avatar.Epressed) {
+                        gun.setSceneX(tempMouseX);
+                        gun.setSceneY(tempMouseY);
+                        avatar.pickGun(gun);
+                        level.getGuns().remove(i);
+                        ui.showMessage("Cogiste un arma chaval", 120);
+                    }
 
-                if(distance < 15){
-                    level.getBullets().remove(i);
-                    level.getEnemies().remove(j);
                 }
-
             }
+
+            for (int i = 0; i < level.getEnemies().size(); i++) {
+                Enemy ene = level.getEnemies().get(i);
+                double distance = Math.sqrt(
+                        Math.pow(ene.pos.getX() - avatar.pos.getX(), 2) +
+                                Math.pow(ene.pos.getY() - avatar.pos.getY(), 2)
+                );
+                if (distance < 40) {
+                    if (avatar.isAttacking()) {
+                        level.getEnemies().remove(i);
+
+                    }
+
+                }
+            }
+
+            for (int i = 0; i < level.getBullets().size(); i++) {
+                Bullet bn = level.getBullets().get(i);
+                for (int j = 0; j < level.getEnemies().size(); j++) {
+                    Enemy en = level.getEnemies().get(j);
+
+                    double distance = Math.sqrt(
+                            Math.pow(en.pos.getX() - bn.pos.getX(), 2) +
+                                    Math.pow(en.pos.getY() - bn.pos.getY(), 2)
+                    );
+
+                    if (distance < 15) {
+                        level.getBullets().remove(i);
+                        level.getEnemies().remove(j);
+                    }
+
+                }
+            }
+            avatar.update();
         }
-        avatar.update();
+
+        if(gameState==pauseState){
+            //nuh uh
+        }
     }
 
     public void repaint(){
@@ -265,6 +283,7 @@ public class HelloController implements Initializable, Runnable {
         for(int i=0 ; i<level.getGuns().size() ; i++){
             level.getGuns().get(i).draw(gc);
         }
+        ui.draw(gc);
     }
 }
 
