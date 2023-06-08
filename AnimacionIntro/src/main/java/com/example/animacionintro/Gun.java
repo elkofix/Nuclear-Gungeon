@@ -20,7 +20,7 @@ public class Gun extends Drawing implements Runnable{
     private int firerate;
     ScheduledExecutorService executorService;
     ScheduledExecutorService executorServiceFire;
-    public int reloadTime;
+    private int reloadTime;
     private boolean isFront;
 
     private double rotationAngle;
@@ -31,7 +31,7 @@ public class Gun extends Drawing implements Runnable{
     private double mouseX;
     private double mouseY;
     private Rotate rotateX, rotateY;
-    public Image img;
+    private Image img;
 
     public boolean isShow() {
         return isShow;
