@@ -1,35 +1,39 @@
 package com.example.animacionintro;
 
+import javafx.geometry.BoundingBox;
+import javafx.geometry.Bounds;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.paint.Color;
 
-public class Enemy extends Drawing implements Runnable{
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 
-    public Enemy(Vector pos){
-        this.pos = pos;
+public abstract class Enemy extends Drawing implements Runnable {
+    protected int health;
+    protected Level level;
+
+    public Enemy(Vector position, int health) {
+        this.pos= position;
+        this.health = health;
     }
 
-    @Override
-    public void draw(GraphicsContext gc) {
-        gc.setFill(Color.BLACK);
-        gc.setStroke(Color.RED);
-        gc.fillRect(pos.getX(), pos.getY(), 10,10);
-        gc.strokeRect(pos.getX(), pos.getY(), 10,10);
-    }
-    public boolean isAlive = true;
-    @Override
-    public void run() {
-        //Tercer plano
-        while (isAlive) {
-            double deltaX = Math.random() * 6 - 3;
-            double deltaY = Math.random() * 6 - 3;
-            pos.setY(pos.getY() + deltaY);
-            pos.setX(pos.getX() + deltaX);
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+    public abstract void update();
+
+    public void takeDamage(int damage) {
+        health -= damage;
+        if (health <= 0) {
+            destroy();
         }
+    }
+
+    protected void destroy() {
+        level.getEnemies().remove(this);
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
     }
 }

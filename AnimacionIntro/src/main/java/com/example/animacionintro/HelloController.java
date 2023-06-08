@@ -70,19 +70,39 @@ public class HelloController implements Initializable, Runnable {
 		//Generar el primer mapa
 		Level l1 = new Level(0, LEVEL_ROUTE + "level_1.txt");
 		l1.setColor(Color.WHITE);
-		Enemy e = new Enemy(new Vector(400, 100));
-		new Thread(e).start();
-		l1.getEnemies().add(e);
-		l1.getEnemies().add(new Enemy(new Vector(400, 300)));
+		Stalker stalker1 = new Stalker(new Vector(400, 100), 100, avatar);
+		new Thread(stalker1).start();
+		l1.getEnemies().add(stalker1);
+
+
+		Stalker stalker2 = new Stalker(new Vector(400, 300), 100, avatar);
+		new Thread(stalker2).start();
+		l1.getEnemies().add(stalker2);
+
+		Guard guard = new Guard(new Vector(200, 200), 10, new Vector(300, 200), new Vector(100, 400), avatar, l1);
+		new Thread(guard).start();
+		l1.getEnemies().add(guard);
+
 		l1.getGuns().add(gun);
 		l1.getGuns().add(new Gun(new Vector(200, 200), 2, new Image("file:" + HelloApplication.class.getResource("gun/shotgun.png").getPath()), 2, 1000, 4, this));
+
+
 		levels.add(l1);
 		//Generar el segundo mapa
 		Level l2 = new Level(1, LEVEL_ROUTE + "level_1.txt");
 		l2.setColor(Color.GRAY);
-		l2.getEnemies().add(new Enemy(new Vector(100, 100)));
-		l2.getEnemies().add(new Enemy(new Vector(100, 300)));
-		l2.getEnemies().add(new Enemy(new Vector(300, 300)));
+		l2.getEnemies().add(new Stalker(new Vector(100, 100),100, avatar));
+		l2.getEnemies().add(new Stalker(new Vector(100, 300),100, avatar));
+		l2.getEnemies().add(new Stalker(new Vector(300, 300),100, avatar));
+
+		Guard guard1 = new Guard(new Vector(200, 200), 10, new Vector(300, 200), new Vector(100, 400), avatar, l2);
+		new Thread(guard1).start();
+		l2.getEnemies().add(guard1);
+
+		Guard guard2 = new Guard(new Vector(500, 400), 15, new Vector(600, 400), new Vector(400, 600),avatar, l2);
+		new Thread(guard2).start();
+		l2.getEnemies().add(guard2);
+
 		levels.add(l2);
 		gameThread.start();
 	}
@@ -166,73 +186,66 @@ public class HelloController implements Initializable, Runnable {
 	}
 
 	public void update() {
-		if(gameState==playState) {
-			Level level = levels.get(currentLevel);
-			if (avatar.pos.getX() < 25) {
-				avatar.pos.setX(25);
-			}
-			if (avatar.pos.getY() > canvas.getHeight() - 25) {
-				avatar.pos.setY(canvas.getHeight() - 25);
-			}
-			if (avatar.pos.getY() < 0) {
-				currentLevel = 1;
-				avatar.pos.setY(canvas.getHeight());
-			}
 
-			//Colisiones
-			for (int i = 0; i < level.getGuns().size(); i++) {
-				Gun gun = level.getGuns().get(i);
-				double distance = Math.sqrt(
-						Math.pow(gun.pos.getX() - avatar.pos.getX(), 2) +
-								Math.pow(gun.pos.getY() - avatar.pos.getY(), 2)
-				);
-				if (distance < 40) {
-					if (avatar.Epressed) {
-						gun.setSceneX(tempMouseX);
-						gun.setSceneY(tempMouseY);
-						avatar.pickGun(gun);
-						level.getGuns().remove(i);
-
-					}
-
-				}
-			}
-
-			for (int i = 0; i < level.getEnemies().size(); i++) {
-				Enemy ene = level.getEnemies().get(i);
-				double distance = Math.sqrt(
-						Math.pow(ene.pos.getX() - avatar.pos.getX(), 2) +
-								Math.pow(ene.pos.getY() - avatar.pos.getY(), 2)
-				);
-				if (distance < 40) {
-					if (avatar.isAttacking()) {
-						;
-						level.getEnemies().remove(i);
-
-					}
-
-				}
-			}
-
-			for (int i = 0; i < level.getBullets().size(); i++) {
-				Bullet bn = level.getBullets().get(i);
-				for (int j = 0; j < level.getEnemies().size(); j++) {
-					Enemy en = level.getEnemies().get(j);
-
-					double distance = Math.sqrt(
-							Math.pow(en.pos.getX() - bn.pos.getX(), 2) +
-									Math.pow(en.pos.getY() - bn.pos.getY(), 2)
-					);
-
-					if (distance < 15) {
-						level.getBullets().remove(i);
-						level.getEnemies().remove(j);
-					}
-
-				}
-			}
-			avatar.update();
+		Level level = levels.get(currentLevel);
+		if (avatar.pos.getX() < 25) {
+			avatar.pos.setX(25);
 		}
+		if (avatar.pos.getY() > canvas.getHeight() - 25) {
+			avatar.pos.setY(canvas.getHeight() - 25);
+		}
+		if (avatar.pos.getY() < 0) {
+			currentLevel = 1;
+			avatar.pos.setY(canvas.getHeight());
+		}
+		//Colisiones
+		for (int i = 0; i < level.getGuns().size(); i++) {
+			Gun gun = level.getGuns().get(i);
+			double distance = Math.sqrt(
+					Math.pow(gun.pos.getX() - avatar.pos.getX(), 2) +
+							Math.pow(gun.pos.getY() - avatar.pos.getY(), 2)
+			);
+			if (distance < 40) {
+				if (avatar.Epressed) {
+					gun.setSceneX(tempMouseX);
+					gun.setSceneY(tempMouseY);
+					avatar.pickGun(gun);
+					level.getGuns().remove(i);
+				}
+			}
+		}
+		for (int i = 0; i < level.getEnemies().size(); i++) {
+			Enemy ene = level.getEnemies().get(i);
+			ene.update();
+			double distance = Math.sqrt(
+					Math.pow(ene.pos.getX() - avatar.pos.getX(), 2) +
+							Math.pow(ene.pos.getY() - avatar.pos.getY(), 2)
+			);
+			if (distance < 40) {
+				if (avatar.isAttacking()) {
+					level.getEnemies().remove(i);
+				}
+			}
+		}
+		for (int i = 0; i < level.getBullets().size(); i++) {
+			Bullet bn = level.getBullets().get(i);
+			for (int j = 0; j < level.getEnemies().size(); j++) {
+				Enemy en = level.getEnemies().get(j);
+				double distance = Math.sqrt(
+						Math.pow(en.pos.getX() - bn.pos.getX(), 2) +
+								Math.pow(en.pos.getY() - bn.pos.getY(), 2)
+				);
+				if (distance < 30 && !level.getBullets().get(i).enemy) {
+					System.out.println(level.getEnemies().get(j).pos.getX() + " "+level.getEnemies().get(j).pos.getY());
+					System.out.println(level.getBullets().get(i).pos.getX() + " "+level.getBullets().get(i).pos.getY());
+					level.getBullets().remove(i);
+					level.getEnemies().remove(j);
+				}
+
+			}
+		}
+		avatar.update();
+
 	}
 
 	public void repaint() {

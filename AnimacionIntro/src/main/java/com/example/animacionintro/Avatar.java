@@ -175,7 +175,7 @@ public class Avatar extends Drawing implements Runnable{
                             diff.setMag(20);
                             Bullet b =new Bullet(
                                     new Vector(getGun().pos.getX(), getGun().pos.getY()),
-                                    diff
+                                    diff,false
                             );
                             b.setRotationAngle(getGun().getRotationAngle());
                             levels.get(currentLevel).getBullets().add(

@@ -10,6 +10,8 @@ public class Bullet extends Drawing {
         return dir;
     }
 
+    public boolean enemy;
+
     public double getRotationAngle() {
         return rotationAngle;
     }
@@ -27,8 +29,9 @@ public class Bullet extends Drawing {
     }
 
     private Vector dir;
-    public Bullet(Vector pos, Vector dir){
+    public Bullet(Vector pos, Vector dir, boolean enemy){
         this.pos = pos;
+        this.enemy = enemy;
         this.dir = dir;
     }
 
