@@ -87,8 +87,9 @@ public class UI {
         if(gp.gameState == gp.gameOverState){
             gc.setFill(Color.rgb(0,0,0, .5));
             gc.setFont(arial_40);
+            gc.setStroke(Color.RED);
             gc.fillRect(0,0,gp.screenWidth, gp.screenHeight);
-            gc.strokeText("Game over", 200, 200);
+            gc.strokeText("Game over", 150, 200);
             gp.gameThread=null;
         }
     }

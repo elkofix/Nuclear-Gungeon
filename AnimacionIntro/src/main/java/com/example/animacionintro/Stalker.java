@@ -11,9 +11,9 @@ import java.util.ArrayList;
 
 public class Stalker extends Enemy {
     private boolean isAlive = true;
-    private double followDistance = 210; // Distancia a partir de la cual el Stalker sigue al Avatar
+    private double followDistance = 190; // Distancia a partir de la cual el Stalker sigue al Avatar
     private Avatar avatar;
-    private double speed = 2.0; // Velocidad de movimiento del Stalker
+    private double speed = 1.0; // Velocidad de movimiento del Stalker
 
     private Image[] idle;
     private int frame;
@@ -31,6 +31,9 @@ public class Stalker extends Enemy {
         this.avatar = avatar;
         getStalkerImages();
     }
+    private double touchDistance = 20; // Distancia a partir de la cual el Stalker puede tocar al Avatar
+
+    private boolean isDamaging = false;
 
     @Override
     public void update() {
@@ -38,6 +41,41 @@ public class Stalker extends Enemy {
         if (shouldFollowAvatar()) {
             followAvatar();
         }
+
+        if (shouldDamageAvatar()) {
+            startDamageThread();
+        } else {
+            stopDamageThread();
+        }
+    }
+    private boolean shouldDamageAvatar() {
+        if (avatar == null) {
+            return false;
+        }
+
+        double avatarX = avatar.pos.getX();
+        double avatarY = avatar.pos.getY();
+        double distance = pos.distanceTo(new Vector(avatarX, avatarY));
+        return distance <= touchDistance;
+    }
+    private void startDamageThread() {
+        if (!isDamaging) {
+            isDamaging = true;
+            Thread damageThread = new Thread(() -> {
+                while (isDamaging) {
+                    try {
+                        Thread.sleep(3200); // 1800 milisegundos = 1,8 segundos
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            damageThread.start();
+        }
+    }
+
+    private void stopDamageThread() {
+        isDamaging = false;
     }
 
     private boolean shouldFollowAvatar() {

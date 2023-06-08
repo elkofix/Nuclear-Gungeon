@@ -12,9 +12,11 @@ public class Guard extends Enemy {
     private Avatar avatar;
     private Level level;
     private double speed = 1.0; // Velocidad de movimiento del Guardia
+    private ReproductorDeSonido reproductorDeSonido = new ReproductorDeSonido(System.getProperty("user.dir")+"/AnimacionIntro/src/main/resources/audio/disparo.wav");
 
     public Guard(Vector position, int health, Vector patrolPoint1, Vector patrolPoint2, Avatar avatar, Level level) {
         super(position, health);
+        new Thread(reproductorDeSonido).start();
         this.patrolPoint1 = patrolPoint1;
         this.patrolPoint2 = patrolPoint2;
         this.currentPatrolPoint = patrolPoint1;
@@ -65,10 +67,11 @@ public class Guard extends Enemy {
             // Generar una nueva bala y agregarla al nivel
             Bullet bullet = new Bullet(pos.clone(), getDirectionToPlayer(), true);
             level.getBullets().add(bullet);
+            new Thread(reproductorDeSonido).start();
 
             // Esperar un tiempo antes de generar la siguiente bala
             try {
-                Thread.sleep(1000); // Tiempo de espera entre generación de balas (1 segundo)
+                Thread.sleep(1450); // Tiempo de espera entre generación de balas (1 segundo)
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -101,6 +104,9 @@ public class Guard extends Enemy {
     }
 
     private void patrol() {
+        if (isShooting) {
+            return; // Si está disparando, no realizar movimientos
+        }
         Vector direction = currentPatrolPoint.subtract(pos);
         direction.normalize();
         pos.setX(pos.getX() + direction.getX() * getSpeed());

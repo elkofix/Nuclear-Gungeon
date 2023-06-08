@@ -70,16 +70,16 @@ public class HelloController implements Initializable, Runnable {
 		//Generar el primer mapa
 		Level l1 = new Level(0, LEVEL_ROUTE + "level_1.txt");
 		l1.setColor(Color.WHITE);
-		Stalker stalker1 = new Stalker(new Vector(400, 100), 100, avatar);
+		Stalker stalker1 = new Stalker(new Vector(400, 100), 2, avatar);
 		new Thread(stalker1).start();
 		l1.getEnemies().add(stalker1);
 
 
-		Stalker stalker2 = new Stalker(new Vector(400, 300), 100, avatar);
+		Stalker stalker2 = new Stalker(new Vector(400, 300), 2, avatar);
 		new Thread(stalker2).start();
 		l1.getEnemies().add(stalker2);
 
-		Guard guard = new Guard(new Vector(200, 200), 10, new Vector(300, 200), new Vector(100, 400), avatar, l1);
+		Guard guard = new Guard(new Vector(200, 200), 3, new Vector(300, 200), new Vector(100, 400), avatar, l1);
 		new Thread(guard).start();
 		l1.getEnemies().add(guard);
 
@@ -236,14 +236,57 @@ public class HelloController implements Initializable, Runnable {
 								Math.pow(en.pos.getY() - bn.pos.getY(), 2)
 				);
 				if (distance < 30 && !level.getBullets().get(i).enemy) {
-					System.out.println(level.getEnemies().get(j).pos.getX() + " "+level.getEnemies().get(j).pos.getY());
-					System.out.println(level.getBullets().get(i).pos.getX() + " "+level.getBullets().get(i).pos.getY());
 					level.getBullets().remove(i);
-					level.getEnemies().remove(j);
+					en.setHealth(en.getHealth() - 1); // Resta 1 a la salud del enemigo
+					if (en.getHealth() <= 0) {
+						level.getEnemies().remove(j); // Elimina el enemigo si su salud es menor o igual a 0
+					}
+					break;
 				}
 
 			}
 		}
+		for (int i = 0; i < level.getBullets().size(); i++) {
+			Bullet bullet = level.getBullets().get(i);
+			if (bullet.enemy) {
+				double distance = Math.sqrt(
+						Math.pow(bullet.pos.getX() - avatar.pos.getX(), 2) +
+								Math.pow(bullet.pos.getY() - avatar.pos.getY(), 2)
+				);
+
+				if (distance < 30) {
+					level.getBullets().remove(i);  // Elimina la bala del enemigo
+					avatar.setCurrentLives(avatar.getCurrentLives()-3);  // Resta una vida al avatar
+					break;  // Sale del bucle para evitar índices inválidos después de eliminar la bala
+				}
+			}
+		}
+		for (int i = 0; i < level.getEnemies().size(); i++) {
+			Enemy currentEnemy = level.getEnemies().get(i);
+			currentEnemy.update();
+
+			// Comprobar colisiones con otros enemigos
+			for (int j = i + 1; j < level.getEnemies().size(); j++) {
+				Enemy otherEnemy = level.getEnemies().get(j);
+				double distance = Math.sqrt(
+						Math.pow(currentEnemy.pos.getX() - otherEnemy.pos.getX(), 2) +
+								Math.pow(currentEnemy.pos.getY() - otherEnemy.pos.getY(), 2)
+				);
+				if (distance < 30) {
+					// Hay colisión entre los enemigos, ajusta sus posiciones
+					Vector direction = currentEnemy.pos.subtract(otherEnemy.pos).normalize2();
+					double overlap = 40 - distance;
+					double displacementX = direction.getX() * overlap / 2;
+					double displacementY = direction.getY() * overlap / 2;
+
+					currentEnemy.pos.setX(currentEnemy.pos.getX() + displacementX);
+					currentEnemy.pos.setY(currentEnemy.pos.getY() + displacementY);
+					otherEnemy.pos.setX(otherEnemy.pos.getX() - displacementX);
+					otherEnemy.pos.setY(otherEnemy.pos.getY() - displacementY);
+				}
+			}
+		}
+
 		avatar.update();
 
 	}
@@ -281,6 +324,9 @@ public class HelloController implements Initializable, Runnable {
 			for (int i = 0; i < level.getGuns().size(); i++) {
 				level.getGuns().get(i).draw(gc);
 			}
+			ui.draw(gc);
+		}
+		if(gameState==gameOverState){
 			ui.draw(gc);
 		}
 	}
