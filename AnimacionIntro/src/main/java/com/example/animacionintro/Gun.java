@@ -55,11 +55,13 @@ public class Gun extends Drawing implements Runnable{
         this.firePower = firePower;
     }
 
+    public HelloController gp;
     Image aim = new Image("file:" + HelloApplication.class.getResource("aim/aim.png").getPath());
     int firePower;
 
-    public Gun(Vector vector, int bulletQuantity, Image img, int reloadTime, int firerate, int firePower){
+    public Gun(Vector vector, int bulletQuantity, Image img, int reloadTime, int firerate, int firePower, HelloController gp){
         this.center = vector;
+        this.gp = gp;
         this.firePower = firePower;
         this.firerate = firerate;
         pos = vector;
@@ -86,7 +88,7 @@ public class Gun extends Drawing implements Runnable{
             System.out.println("La recarga ya está en progreso");
             return;
         }
-
+        gp.ui.showMessage("Recargando...", reloadTime*60);
         // Programar la recdarga después del tiempo de recarga
         executorService = Executors.newSingleThreadScheduledExecutor();
         isReloading = true;

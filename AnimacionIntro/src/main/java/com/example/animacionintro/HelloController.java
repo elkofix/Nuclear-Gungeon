@@ -53,7 +53,6 @@ public class HelloController implements Initializable, Runnable {
 		canvas.prefHeight(screenHeight);
 		canvas.prefWidth(screenWidth);
 		gameThread = new Thread(this);
-		ui.showCurrentWeapon(new Image("file:" + HelloApplication.class.getResource("ui/punch.png").getPath()));
 		gc = canvas.getGraphicsContext2D();
 		canvas.setCursor(javafx.scene.Cursor.NONE);
 		canvas.setFocusTraversable(true);
@@ -64,10 +63,10 @@ public class HelloController implements Initializable, Runnable {
 		canvas.setOnMouseReleased(this::onMouseReleased);
 		this.avatar = new Avatar();
 		avatar.gp=this;
-		Gun gun = new Gun(new Vector(100, 200), 8, new Image("file:" + HelloApplication.class.getResource("gun/gun.png").getPath()), 2, 300, 1);
+		Gun gun = new Gun(new Vector(100, 200), 8, new Image("file:" + HelloApplication.class.getResource("gun/gun.png").getPath()), 2, 300, 1, this);
 		new Thread(avatar).start(); //Esto ejecuta el código dentro de run() en paralelo
 		levels = new ArrayList<>();
-
+		ui.showCurrentWeapon(new Image("file:" + HelloApplication.class.getResource("ui/punch.png").getPath()));
 		//Generar el primer mapa
 		Level l1 = new Level(0, LEVEL_ROUTE + "level_1.txt");
 		l1.setColor(Color.WHITE);
@@ -76,7 +75,7 @@ public class HelloController implements Initializable, Runnable {
 		l1.getEnemies().add(e);
 		l1.getEnemies().add(new Enemy(new Vector(400, 300)));
 		l1.getGuns().add(gun);
-		l1.getGuns().add(new Gun(new Vector(200, 200), 2, new Image("file:" + HelloApplication.class.getResource("gun/shotgun.png").getPath()), 2, 1000, 4));
+		l1.getGuns().add(new Gun(new Vector(200, 200), 2, new Image("file:" + HelloApplication.class.getResource("gun/shotgun.png").getPath()), 2, 1000, 4, this));
 		levels.add(l1);
 		//Generar el segundo mapa
 		Level l2 = new Level(1, LEVEL_ROUTE + "level_1.txt");

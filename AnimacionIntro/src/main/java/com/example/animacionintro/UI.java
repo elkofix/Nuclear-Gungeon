@@ -3,7 +3,10 @@ package com.example.animacionintro;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
+
+import java.io.InputStream;
 
 public class UI {
     private HelloController gp;
@@ -23,8 +26,10 @@ public class UI {
     }
     public UI(HelloController gp){
         this.gp = gp;
-        arial_40 = new Font("Arial", 40);
-        arial_10 = new Font("Arial", 15);
+            //Se carga la fuente
+        Font.loadFont(HelloApplication.class.getResourceAsStream("RetroGaming.ttf"), 12);
+        arial_40 = Font.font("Retro Gaming", 40);
+        arial_10 = new Font("Retro Gaming", 15);
     }
 
     public void showMessage(String message, int time){
@@ -35,9 +40,9 @@ public class UI {
 
     public void drawBullets(GraphicsContext gc){
         if(gp.avatar.getGun()!=null){
-            gc.setFont(arial_40);
-            gc.setFill(Color.GREEN);
-            gc.strokeText("Bullets ="+gp.avatar.getGun().getBulletQuantity(), 50, 50);
+            gc.setFont(arial_10);
+            gc.setStroke(Color.RED);
+            gc.strokeText(gp.avatar.getGun().getBulletQuantity()+"", 55, 55);
         }
     }
 
@@ -77,7 +82,7 @@ public class UI {
             drawBullets(gc);
             drawMessage(gc);
             drawLive(gc);
-            gc.drawImage(img, 20, 30, 18, 18);
+            gc.drawImage(img, 30, 40, 18, 18);
         }
         if(gp.gameState == gp.gameOverState){
             gc.setFill(Color.rgb(0,0,0, .5));

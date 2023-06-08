@@ -224,7 +224,7 @@ public class Avatar extends Drawing implements Runnable{
             case D: Dpressed = true; isMoving = true;break;
             case E: Epressed = true; isMoving = true;break;
             case SPACE: setCurrentLives(getCurrentLives()-1); break;
-            case R: if(getGun()!=null){gun.reload();}; break;
+            case R: if(getGun()!=null){ gun.reload();}; break;
             case ESCAPE: if(gp.gameState == gp.pauseState){gp.gameState =gp.playState;}else if(gp.gameState == gp.playState){gp.gameState=gp.pauseState;}break;
         }
     }
