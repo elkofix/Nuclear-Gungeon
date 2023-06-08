@@ -11,6 +11,8 @@ public abstract class Enemy extends Drawing implements Runnable {
     protected int health;
     protected Level level;
 
+    protected boolean isAlive = true;
+
     public Enemy(Vector position, int health) {
         this.pos= position;
         this.health = health;

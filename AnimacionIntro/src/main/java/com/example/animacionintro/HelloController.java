@@ -1,5 +1,6 @@
 package com.example.animacionintro;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
@@ -8,10 +9,14 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
+
+import static javafx.scene.input.KeyCode.*;
+import static javafx.scene.input.KeyCode.ENTER;
 
 public class HelloController implements Initializable, Runnable {
 	public static final String MAIN_ROUTE = System.getProperty("user.dir") + "/AnimacionIntro/";
@@ -42,14 +47,17 @@ public class HelloController implements Initializable, Runnable {
 
 	public Avatar avatar;
 
-	public int playState = 1;
-
-	public int pauseState = 0;
-
-	public int gameOverState = 2;
-	public int gameState = playState;
+	public final int pauseState = 0;
+	public final int playState = 1;
+	public final int gameOverState = 2;
+	public final int titleState = 3;
+	public int gameState = titleState;
 	@Override
 	public void initialize(URL url, ResourceBundle resourceBundle) {
+		init();
+	}
+
+	public void init(){
 		canvas.prefHeight(screenHeight);
 		canvas.prefWidth(screenWidth);
 		gameThread = new Thread(this);
@@ -139,7 +147,7 @@ public class HelloController implements Initializable, Runnable {
 		}
 	}
 
-	private boolean isAlive = true;
+	public static boolean isAlive = true;
 
 	private boolean rightClickPressed = false;
 
@@ -152,8 +160,71 @@ public class HelloController implements Initializable, Runnable {
 	}
 
 	public void onKeyPressed(KeyEvent event) {
-		System.out.println(event.getCode());
-		avatar.onKeyPressed(event);
+		if(gameState == playState || gameState == pauseState) {
+			System.out.println(event.getCode());
+			avatar.onKeyPressed(event);
+		}
+		if(gameState == titleState){
+			handleTitle(event);
+		}
+		if(gameState == gameOverState){
+			handleGameOver(event);
+		}
+	}
+
+	public void handleGameOver(KeyEvent event){
+		if(event.getCode()==A){
+			if(ui.commandNum>0) {
+				ui.commandNum--;
+			}
+		}
+		if(event.getCode()==D){
+			if(ui.commandNum<2) {
+				ui.commandNum++;
+			}
+		}
+		if(event.getCode()==ENTER){
+			if(ui.commandNum==0) {
+				isAlive = true;
+				FPS = 0;
+				currentLevel = 0;
+				init();
+				gameState = titleState;
+			}
+			if(ui.commandNum==1) {
+				Stage stg = (Stage) canvas.getScene().getWindow();
+				stg.close();
+			}
+		}
+	}
+
+	public void handleTitle(KeyEvent event){
+		if(event.getCode()==W){
+			if(ui.commandNum>0) {
+				ui.commandNum--;
+			}else{
+				ui.commandNum=2;
+			}
+		}
+		if(event.getCode()==S){
+			if(ui.commandNum<2) {
+				ui.commandNum++;
+			}else{
+				ui.commandNum=0;
+			}
+		}
+		if(event.getCode()==ENTER){
+			if(ui.commandNum==0) {
+				gameState = playState;
+			}
+			if(ui.commandNum==1) {
+				gameState = playState;
+			}
+			if(ui.commandNum==2) {
+				Stage stg = (Stage) canvas.getScene().getWindow();
+				stg.close();
+			}
+		}
 	}
 
 
@@ -169,7 +240,9 @@ public class HelloController implements Initializable, Runnable {
 		while (gameThread != null) {
 			//Dibujar en el lienzo
 			update();
-			repaint();
+			Platform.runLater(()->{
+				repaint();
+			});
 			try {
 				double remainingTime = nextDrawTime - System.nanoTime();
 				remainingTime /= 1000000;
@@ -186,108 +259,115 @@ public class HelloController implements Initializable, Runnable {
 	}
 
 	public void update() {
-
-		Level level = levels.get(currentLevel);
-		if (avatar.pos.getX() < 25) {
-			avatar.pos.setX(25);
-		}
-		if (avatar.pos.getY() > canvas.getHeight() - 25) {
-			avatar.pos.setY(canvas.getHeight() - 25);
-		}
-		if (avatar.pos.getY() < 0) {
-			currentLevel = 1;
-			avatar.pos.setY(canvas.getHeight());
-		}
-		//Colisiones
-		for (int i = 0; i < level.getGuns().size(); i++) {
-			Gun gun = level.getGuns().get(i);
-			double distance = Math.sqrt(
-					Math.pow(gun.pos.getX() - avatar.pos.getX(), 2) +
-							Math.pow(gun.pos.getY() - avatar.pos.getY(), 2)
-			);
-			if (distance < 40) {
-				if (avatar.Epressed) {
-					gun.setSceneX(tempMouseX);
-					gun.setSceneY(tempMouseY);
-					avatar.pickGun(gun);
-					level.getGuns().remove(i);
+		try {
+			if (gameState == playState) {
+				Level level = levels.get(currentLevel);
+				if (avatar.pos.getX() < 25) {
+					avatar.pos.setX(25);
 				}
-			}
-		}
-		for (int i = 0; i < level.getEnemies().size(); i++) {
-			Enemy ene = level.getEnemies().get(i);
-			ene.update();
-			double distance = Math.sqrt(
-					Math.pow(ene.pos.getX() - avatar.pos.getX(), 2) +
-							Math.pow(ene.pos.getY() - avatar.pos.getY(), 2)
-			);
-			if (distance < 40) {
-				if (avatar.isAttacking()) {
-					level.getEnemies().remove(i);
+				if (avatar.pos.getY() > canvas.getHeight() - 25) {
+					avatar.pos.setY(canvas.getHeight() - 25);
 				}
-			}
-		}
-		for (int i = 0; i < level.getBullets().size(); i++) {
-			Bullet bn = level.getBullets().get(i);
-			for (int j = 0; j < level.getEnemies().size(); j++) {
-				Enemy en = level.getEnemies().get(j);
-				double distance = Math.sqrt(
-						Math.pow(en.pos.getX() - bn.pos.getX(), 2) +
-								Math.pow(en.pos.getY() - bn.pos.getY(), 2)
-				);
-				if (distance < 30 && !level.getBullets().get(i).enemy) {
-					level.getBullets().remove(i);
-					en.setHealth(en.getHealth() - 1); // Resta 1 a la salud del enemigo
-					if (en.getHealth() <= 0) {
-						level.getEnemies().remove(j); // Elimina el enemigo si su salud es menor o igual a 0
+				if (avatar.pos.getY() < 0) {
+					currentLevel = 1;
+					avatar.pos.setY(canvas.getHeight());
+				}
+				//Colisiones
+				for (int i = 0; i < level.getGuns().size(); i++) {
+					Gun gun = level.getGuns().get(i);
+					double distance = Math.sqrt(
+							Math.pow(gun.pos.getX() - avatar.pos.getX(), 2) +
+									Math.pow(gun.pos.getY() - avatar.pos.getY(), 2)
+					);
+					if (distance < 40) {
+						if (avatar.Epressed) {
+							gun.setSceneX(tempMouseX);
+							gun.setSceneY(tempMouseY);
+							avatar.pickGun(gun);
+							level.getGuns().remove(i);
+						}
 					}
-					break;
+				}
+				for (int i = 0; i < level.getEnemies().size(); i++) {
+					Enemy ene = level.getEnemies().get(i);
+					ene.update();
+					double distance = Math.sqrt(
+							Math.pow(ene.pos.getX() - avatar.pos.getX(), 2) +
+									Math.pow(ene.pos.getY() - avatar.pos.getY(), 2)
+					);
+					if (distance < 40) {
+						if (avatar.isAttacking()) {
+							level.getEnemies().get(i).isAlive = false;
+							level.getEnemies().remove(i);
+						}
+					}
+				}
+				for (int i = 0; i < level.getBullets().size(); i++) {
+					Bullet bn = level.getBullets().get(i);
+					for (int j = 0; j < level.getEnemies().size(); j++) {
+						Enemy en = level.getEnemies().get(j);
+						double distance = Math.sqrt(
+								Math.pow(en.pos.getX() - bn.pos.getX(), 2) +
+										Math.pow(en.pos.getY() - bn.pos.getY(), 2)
+						);
+						if (distance < 30 && !level.getBullets().get(i).enemy) {
+							level.getBullets().remove(i);
+							en.setHealth(en.getHealth() - 1); // Resta 1 a la salud del enemigo
+							if (en.getHealth() <= 0) {
+								level.getEnemies().remove(j); // Elimina el enemigo si su salud es menor o igual a 0
+							}
+							break;
+						}
+
+					}
+				}
+				for (int i = 0; i < level.getBullets().size(); i++) {
+					Bullet bullet = level.getBullets().get(i);
+					if (bullet.enemy) {
+						double distance = Math.sqrt(
+								Math.pow(bullet.pos.getX() - avatar.pos.getX(), 2) +
+										Math.pow(bullet.pos.getY() - avatar.pos.getY(), 2)
+						);
+
+						if (distance < 30) {
+							level.getBullets().remove(i);  // Elimina la bala del enemigo
+							avatar.setCurrentLives(avatar.getCurrentLives() - 3);  // Resta una vida al avatar
+							break;  // Sale del bucle para evitar índices inválidos después de eliminar la bala
+						}
+					}
+				}
+				for (int i = 0; i < level.getEnemies().size(); i++) {
+					Enemy currentEnemy = level.getEnemies().get(i);
+					currentEnemy.update();
+
+					// Comprobar colisiones con otros enemigos
+					for (int j = i + 1; j < level.getEnemies().size(); j++) {
+						Enemy otherEnemy = level.getEnemies().get(j);
+						double distance = Math.sqrt(
+								Math.pow(currentEnemy.pos.getX() - otherEnemy.pos.getX(), 2) +
+										Math.pow(currentEnemy.pos.getY() - otherEnemy.pos.getY(), 2)
+						);
+						if (distance < 30) {
+							// Hay colisión entre los enemigos, ajusta sus posiciones
+							Vector direction = currentEnemy.pos.subtract(otherEnemy.pos).normalize2();
+							double overlap = 40 - distance;
+							double displacementX = direction.getX() * overlap / 2;
+							double displacementY = direction.getY() * overlap / 2;
+
+							currentEnemy.pos.setX(currentEnemy.pos.getX() + displacementX);
+							currentEnemy.pos.setY(currentEnemy.pos.getY() + displacementY);
+							otherEnemy.pos.setX(otherEnemy.pos.getX() - displacementX);
+							otherEnemy.pos.setY(otherEnemy.pos.getY() - displacementY);
+						}
+					}
 				}
 
+				avatar.update();
 			}
-		}
-		for (int i = 0; i < level.getBullets().size(); i++) {
-			Bullet bullet = level.getBullets().get(i);
-			if (bullet.enemy) {
-				double distance = Math.sqrt(
-						Math.pow(bullet.pos.getX() - avatar.pos.getX(), 2) +
-								Math.pow(bullet.pos.getY() - avatar.pos.getY(), 2)
-				);
-
-				if (distance < 30) {
-					level.getBullets().remove(i);  // Elimina la bala del enemigo
-					avatar.setCurrentLives(avatar.getCurrentLives()-3);  // Resta una vida al avatar
-					break;  // Sale del bucle para evitar índices inválidos después de eliminar la bala
-				}
-			}
-		}
-		for (int i = 0; i < level.getEnemies().size(); i++) {
-			Enemy currentEnemy = level.getEnemies().get(i);
-			currentEnemy.update();
-
-			// Comprobar colisiones con otros enemigos
-			for (int j = i + 1; j < level.getEnemies().size(); j++) {
-				Enemy otherEnemy = level.getEnemies().get(j);
-				double distance = Math.sqrt(
-						Math.pow(currentEnemy.pos.getX() - otherEnemy.pos.getX(), 2) +
-								Math.pow(currentEnemy.pos.getY() - otherEnemy.pos.getY(), 2)
-				);
-				if (distance < 30) {
-					// Hay colisión entre los enemigos, ajusta sus posiciones
-					Vector direction = currentEnemy.pos.subtract(otherEnemy.pos).normalize2();
-					double overlap = 40 - distance;
-					double displacementX = direction.getX() * overlap / 2;
-					double displacementY = direction.getY() * overlap / 2;
-
-					currentEnemy.pos.setX(currentEnemy.pos.getX() + displacementX);
-					currentEnemy.pos.setY(currentEnemy.pos.getY() + displacementY);
-					otherEnemy.pos.setX(otherEnemy.pos.getX() - displacementX);
-					otherEnemy.pos.setY(otherEnemy.pos.getY() - displacementY);
-				}
-			}
+		}catch (Exception e){
+			e.printStackTrace();
 		}
 
-		avatar.update();
 
 	}
 
@@ -327,6 +407,12 @@ public class HelloController implements Initializable, Runnable {
 			ui.draw(gc);
 		}
 		if(gameState==gameOverState){
+			ui.draw(gc);
+		}
+		if(gameState==pauseState){
+			ui.draw(gc);
+		}
+		if(gameState==titleState){
 			ui.draw(gc);
 		}
 	}

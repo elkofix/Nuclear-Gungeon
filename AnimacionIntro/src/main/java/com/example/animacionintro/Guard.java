@@ -5,7 +5,6 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
 public class Guard extends Enemy {
-    private boolean isAlive = true;
     private Vector patrolPoint1;
     private Vector patrolPoint2;
     private Vector currentPatrolPoint;

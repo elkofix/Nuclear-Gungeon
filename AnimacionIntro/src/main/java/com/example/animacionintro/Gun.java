@@ -164,7 +164,7 @@ public class Gun extends Drawing implements Runnable{
 
     @Override
     public void run() {
-        while (true) {
+        while (HelloController.isAlive) {
             mouseX = SceneX;
             mouseY = SceneY;
             try {

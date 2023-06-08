@@ -359,7 +359,7 @@ public class Avatar extends Drawing implements Runnable{
     //Ejecutar en paralelo
     @Override
     public void run() {
-        while (true) {
+        while (HelloController.isAlive) {
             frame = (frame + 1) % 4;
             try {
                 Thread.sleep(120);

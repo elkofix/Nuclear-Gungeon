@@ -13,9 +13,10 @@ public class UI {
     private Font arial_40;
     private Font arial_10;
     int messageCounter =0;
-
+    public int commandNum = 0;
     Image img;
     int time;
+    Image[] titleScreen;
     public String message = "";
     private boolean messageOn = false;
     Image heart = new Image("file:" + HelloApplication.class.getResource("players/dandy/heart/heart1.png").getPath());
@@ -30,6 +31,13 @@ public class UI {
         Font.loadFont(HelloApplication.class.getResourceAsStream("RetroGaming.ttf"), 12);
         arial_40 = Font.font("Retro Gaming", 40);
         arial_10 = new Font("Retro Gaming", 15);
+        titleScreen = new Image[6];
+        titleScreen[0] = new Image("file:" + HelloApplication.class.getResource("ui/title.png").getPath());
+        titleScreen[1] = new Image("file:" + HelloApplication.class.getResource("ui/opt1.png").getPath());
+        titleScreen[2] = new Image("file:" + HelloApplication.class.getResource("ui/opt2.png").getPath());
+        titleScreen[3] = new Image("file:" + HelloApplication.class.getResource("ui/quit.png").getPath());
+        titleScreen[4] = new Image("file:" + HelloApplication.class.getResource("ui/arrow.png").getPath());
+        titleScreen[5] = new Image("file:" + HelloApplication.class.getResource("ui/try.png").getPath());
     }
 
     public void showMessage(String message, int time){
@@ -90,7 +98,37 @@ public class UI {
             gc.setStroke(Color.RED);
             gc.fillRect(0,0,gp.screenWidth, gp.screenHeight);
             gc.strokeText("Game over", 150, 200);
-            gp.gameThread=null;
+            if(commandNum==0){
+                gc.drawImage(titleScreen[4], 100, 250, 150, 50);
+            }
+            if(commandNum==1){
+                gc.drawImage(titleScreen[4], 275, 250, 150, 50);
+            }
+            gc.drawImage(titleScreen[5], 150, 250, 150, 50);
+            gc.drawImage(titleScreen[3], 300, 250, 150, 50);
         }
+        if(gp.gameState == gp.titleState){
+            drawTitleScreen(gc);
+        }
+    }
+
+    public void drawTitleScreen(GraphicsContext gc){
+        gc.setFill(Color.BLACK);
+        gc.fillRect(0,0 , gp.screenWidth, gp.screenHeight);
+        gc.setFont(arial_40);
+        String text = "Nuclear Gungeon";
+        if(commandNum==0){
+            gc.drawImage(titleScreen[4], 135, 200, 150, 50);
+        }
+        if(commandNum==1){
+            gc.drawImage(titleScreen[4], 135, 250, 150, 50);
+        }
+        if(commandNum==2){
+            gc.drawImage(titleScreen[4], 170, 300, 150, 50);
+        }
+        gc.drawImage(titleScreen[0], 50, 10, 500, 100);
+        gc.drawImage(titleScreen[1], 210, 200, 150, 50);
+        gc.drawImage(titleScreen[2], 210, 250, 150, 50);
+        gc.drawImage(titleScreen[3], 210, 300, 150, 50);
     }
 }

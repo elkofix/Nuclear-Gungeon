@@ -10,7 +10,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
 public class Stalker extends Enemy {
-    private boolean isAlive = true;
     private double followDistance = 190; // Distancia a partir de la cual el Stalker sigue al Avatar
     private Avatar avatar;
     private double speed = 1.0; // Velocidad de movimiento del Stalker
@@ -58,15 +57,19 @@ public class Stalker extends Enemy {
         double distance = pos.distanceTo(new Vector(avatarX, avatarY));
         return distance <= touchDistance;
     }
+    private Thread damageThread = null;
+
     private void startDamageThread() {
         if (!isDamaging) {
             isDamaging = true;
-            Thread damageThread = new Thread(() -> {
+            damageThread = new Thread(() -> {
                 while (isDamaging) {
                     try {
-                        Thread.sleep(3200); // 1800 milisegundos = 1,8 segundos
+                        Thread.sleep(1450); // 2500 milisegundos = 2.5 segundos
+                        avatar.setCurrentLives(avatar.getCurrentLives() - 1); // Resta 1 vida al avatar
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        Thread.currentThread().interrupt(); // Vuelve a interrumpir el hilo
+                        break; // Sale del bucle while
                     }
                 }
             });
@@ -76,6 +79,10 @@ public class Stalker extends Enemy {
 
     private void stopDamageThread() {
         isDamaging = false;
+        if (damageThread != null) {
+            damageThread.interrupt(); // Interrumpe el hilo si está en ejecución
+            damageThread = null; // Reinicia la referencia al hilo
+        }
     }
 
     private boolean shouldFollowAvatar() {
