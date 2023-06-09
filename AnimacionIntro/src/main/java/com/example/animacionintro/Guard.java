@@ -4,6 +4,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
+import java.util.Random;
+
 public class Guard extends Enemy {
     private Vector patrolPoint1;
     private Vector patrolPoint2;
@@ -13,11 +15,12 @@ public class Guard extends Enemy {
     private double speed = 1.0; // Velocidad de movimiento del Guardia
     private ReproductorDeSonido reproductorDeSonido = new ReproductorDeSonido(System.getProperty("user.dir")+"/AnimacionIntro/src/main/resources/audio/disparo.wav");
 
-    public Guard(Vector position, int health, Vector patrolPoint1, Vector patrolPoint2, Avatar avatar, Level level, HelloController gp) {
+    public int actionLockCounter = 0;
+
+    public Guard(Vector position, int health, Avatar avatar, Level level, HelloController gp) {
         super(position, health, gp);
+        solidArea = new Colission(world, 30, 30);
         new Thread(reproductorDeSonido).start();
-        this.patrolPoint1 = patrolPoint1;
-        this.patrolPoint2 = patrolPoint2;
         this.currentPatrolPoint = patrolPoint1;
         this.avatar = avatar;
         this.level = level;
@@ -35,22 +38,55 @@ public class Guard extends Enemy {
         }
     }
 
+    public void setAction(){
+
+        actionLockCounter ++;
+        if(actionLockCounter == 120) {
+            Random random = new Random();
+            int i = random.nextInt(100) + 1;
+
+            if (i <= 25) {
+                direction = "up";
+            }
+            if (i > 25 && i <= 50) {
+                direction = "down";
+            }
+            if (i > 50 && i <= 75) {
+                direction = "left";
+            }
+            if (i > 75 && i <= 100) {
+                direction = "right";
+            }
+            actionLockCounter = 0;
+        }
+    }
+
     @Override
     public void update() {
         // Lógica de actualización específica para el Guardia
-        if (shouldChangePatrolPoint()) {
-            changePatrolPoint();
-        }
-        patrol();
-        double distanceToPlayer = Math.sqrt(
-                Math.pow(avatar.world.getX() - world.getX(), 2) +
-                        Math.pow(avatar.world.getY() - world.getY(), 2)
-        );
+        setAction();
+        collisionOn= false;
+        gp.cChecker.checkTile(this);
+        if(collisionOn==false){
+            switch (direction){
+                case "up": world.setY(world.getY()-speed); break;
+                case "down": world.setY(world.getY()+speed); break;
+                case "left": world.setX(world.getX()-speed); break;
+                case "right": world.setX(world.getX()+speed); break;
 
-        if (distanceToPlayer < 150) {
-            // Disparar al jugador
-            shootPlayer();
+            }
         }
+
+            double distanceToPlayer = Math.sqrt(
+                    Math.pow(avatar.world.getX() - world.getX(), 2) +
+                            Math.pow(avatar.world.getY() - world.getY(), 2)
+            );
+
+            if (distanceToPlayer < 150) {
+                // Disparar al jugador
+                shootPlayer();
+            }
+
     }
     private boolean isShooting = false;
 

@@ -14,6 +14,12 @@ public abstract class Drawing {
 
     public boolean collisionOn = false;
 
+    public boolean conllisionUp= false;
+    public boolean collisionDown = false;
+
+    public boolean collisionLeft = false;
+
+    public boolean colssionRight = false;
     protected String direction = "";
 
     protected Colission solidArea;

@@ -89,12 +89,12 @@ public class HelloController implements Initializable, Runnable {
 		Stalker stalker1 = new Stalker(new Vector(400, 100), 2, avatar, this);
 		new Thread(stalker1).start();
 		l1.getEnemies().add(stalker1);
-		
+
 		Stalker stalker2 = new Stalker(new Vector(400, 300), 2, avatar, this);
 		new Thread(stalker2).start();
 		l1.getEnemies().add(stalker2);
 
-		Guard guard = new Guard(new Vector(200, 200), 3, new Vector(300, 200), new Vector(100, 400), avatar, l1, this);
+		Guard guard = new Guard(new Vector(50, 50), 3, avatar, l1, this);
 		new Thread(guard).start();
 		l1.getEnemies().add(guard);
 

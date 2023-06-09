@@ -19,46 +19,48 @@ public class CollissionChecker {
         int drawingBottomRow = drawingBottomWorldY/gp.tileSize;
 
         int tileNum1, tileNum2;
+            switch (drawing.direction) {
+                case "up":
+                    drawingTopRow = (drawingTopWorldY - drawing.speed - 5) / gp.tileSize;
+                    tileNum1 = gp.tile.mapTileNum[drawingLeftCol][drawingTopRow];
+                    tileNum2 = gp.tile.mapTileNum[drawingRightCol][drawingTopRow];
 
-        switch (drawing.direction){
-            case "up":
-                drawingTopRow = (drawingTopWorldY - drawing.speed-5)/gp.tileSize;
-                tileNum1 = gp.tile.mapTileNum[drawingLeftCol][drawingTopRow];
-                tileNum2 = gp.tile.mapTileNum[drawingRightCol][drawingTopRow];
-
-                if (gp.tile.walls[tileNum1].collission || gp.tile.walls[tileNum2].collission) {
+                    if (gp.tile.walls[tileNum1].collission || gp.tile.walls[tileNum2].collission) {
                         drawing.collisionOn = true;
-                }
-                break;
-            case "down":
-                drawingBottomRow = (drawingBottomWorldY + drawing.speed+5)/gp.tileSize;
-                tileNum1 = gp.tile.mapTileNum[drawingLeftCol][drawingBottomRow];
-                tileNum2 = gp.tile.mapTileNum[drawingRightCol][drawingBottomRow];
+                    }
+                    break;
+                case "down":
+                    drawingBottomRow = (drawingBottomWorldY + drawing.speed + 5) / gp.tileSize;
+                    tileNum1 = gp.tile.mapTileNum[drawingLeftCol][drawingBottomRow];
+                    tileNum2 = gp.tile.mapTileNum[drawingRightCol][drawingBottomRow];
 
-                if (gp.tile.walls[tileNum1].collission || gp.tile.walls[tileNum2].collission) {
-                    drawing.collisionOn = true;
-                }
-                break;
-            case "left":
-                drawingLeftCol = (drawingLeftWorldX - drawing.speed-5)/gp.tileSize;
-                tileNum1 = gp.tile.mapTileNum[drawingLeftCol][drawingTopRow];
-                tileNum2 = gp.tile.mapTileNum[drawingLeftCol][drawingBottomRow];
+                    if (gp.tile.walls[tileNum1].collission || gp.tile.walls[tileNum2].collission) {
+                        drawing.collisionOn = true;
+                    }
+                    break;
+                case "left":
+                    drawingLeftCol = (drawingLeftWorldX - drawing.speed - 5) / gp.tileSize;
+                    tileNum1 = gp.tile.mapTileNum[drawingLeftCol][drawingTopRow];
+                    tileNum2 = gp.tile.mapTileNum[drawingLeftCol][drawingBottomRow];
 
-                if (gp.tile.walls[tileNum1].collission || gp.tile.walls[tileNum2].collission) {
-                    drawing.collisionOn = true;
-                }
-                break;
-            case "right":
-                drawingRightCol = (drawingRightWorldX + drawing.speed+5)/gp.tileSize;
-                tileNum1 = gp.tile.mapTileNum[drawingRightCol][drawingTopRow];
-                tileNum2 = gp.tile.mapTileNum[drawingRightCol][drawingBottomRow];
+                    if (gp.tile.walls[tileNum1].collission || gp.tile.walls[tileNum2].collission) {
+                        drawing.collisionOn = true;
+                    }
+                    break;
+                case "right":
+                    drawingRightCol = (drawingRightWorldX + drawing.speed + 5) / gp.tileSize;
+                    tileNum1 = gp.tile.mapTileNum[drawingRightCol][drawingTopRow];
+                    tileNum2 = gp.tile.mapTileNum[drawingRightCol][drawingBottomRow];
 
-                if (gp.tile.walls[tileNum1].collission || gp.tile.walls[tileNum2].collission) {
-                    drawing.collisionOn = true;
-                }
-                break;
+                    if (gp.tile.walls[tileNum1].collission || gp.tile.walls[tileNum2].collission) {
+                        drawing.collisionOn = true;
+                    }
+                    break;
+            }
+
+
         }
     }
 
 
-}
+
