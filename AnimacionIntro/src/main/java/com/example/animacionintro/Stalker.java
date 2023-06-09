@@ -21,30 +21,36 @@ public class Stalker extends Enemy {
     public void getStalkerImages(){
         idle = new Image[4];
         for(int i=1 ; i<=4   ; i++) {
-            String uri = "file:" + HelloApplication.class.getResource("enemy/hongo"+i+".png").getPath();
+            String uri = "file:" + HelloApplication.class.getResource("enemy/fantasma"+i+".png").getPath();
             idle[i-1] = new Image(uri);
         }
     }
     public Stalker(Vector position, int health, Avatar avatar, HelloController gp) {
         super(position, health, gp);
         this.avatar = avatar;
+        solidArea = new Colission(world, 30, 30);
         getStalkerImages();
     }
     private double touchDistance = 20; // Distancia a partir de la cual el Stalker puede tocar al Avatar
 
     private boolean isDamaging = false;
+    public int actionLockCounter = 0;
 
     @Override
     public void update() {
         // Lógica de actualización específica para el Perseguidor
-        if (shouldFollowAvatar()) {
-            followAvatar();
-        }
+        collisionOn = false;
+        gp.cChecker.checkTile(this);
+        if(!collisionOn) {
+            if (shouldFollowAvatar()) {
+                followAvatar();
+            }
 
-        if (shouldDamageAvatar()) {
-            startDamageThread();
-        } else {
-            stopDamageThread();
+            if (shouldDamageAvatar()) {
+                startDamageThread();
+            } else {
+                stopDamageThread();
+            }
         }
     }
     private boolean shouldDamageAvatar() {

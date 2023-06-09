@@ -33,7 +33,7 @@ public class Guard extends Enemy {
     public void getSGuardImages(){
         idle = new Image[4];
         for(int i=1 ; i<=4   ; i++) {
-            String uri = "file:" + HelloApplication.class.getResource("enemy/fantasma"+i+".png").getPath();
+            String uri = "file:" + HelloApplication.class.getResource("enemy/hongo"+i+".png").getPath();
             idle[i-1] = new Image(uri);
         }
     }

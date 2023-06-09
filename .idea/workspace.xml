@@ -6,10 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="54e88648-91b2-4c4a-8b8d-2d592bd4e113" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/CollissionChecker.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/CollissionChecker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Drawing.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Drawing.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Guard.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Guard.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/HelloController.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/HelloController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Stalker.java" beforeDir="false" afterPath="$PROJECT_DIR$/AnimacionIntro/src/main/java/com/example/animacionintro/Stalker.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -87,7 +86,7 @@
       <workItem from="1686232330995" duration="1634000" />
       <workItem from="1686233977812" duration="3303000" />
       <workItem from="1686246776040" duration="9747000" />
-      <workItem from="1686258138112" duration="11662000" />
+      <workItem from="1686258138112" duration="13260000" />
     </task>
     <servers />
   </component>

@@ -86,11 +86,11 @@ public class HelloController implements Initializable, Runnable {
 		//Generar el primer mapa
 		Level l1 = new Level(0, LEVEL_ROUTE + "level_1.txt");
 		l1.setColor(Color.BLACK);
-		Stalker stalker1 = new Stalker(new Vector(400, 100), 2, avatar, this);
+		Stalker stalker1 = new Stalker(new Vector(300, 10), 2, avatar, this);
 		new Thread(stalker1).start();
 		l1.getEnemies().add(stalker1);
 
-		Stalker stalker2 = new Stalker(new Vector(400, 300), 2, avatar, this);
+		Stalker stalker2 = new Stalker(new Vector(80, 40), 2, avatar, this);
 		new Thread(stalker2).start();
 		l1.getEnemies().add(stalker2);
 
